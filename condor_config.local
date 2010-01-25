@@ -1,0 +1,24 @@
+# This config disables advertising to UW's world collector. Changing
+# this config option will have your pool show up in UW's world
+# collector and eventually on the world map of Condor pools.
+CONDOR_DEVELOPERS = NONE
+
+CONDOR_HOST = $(FULL_HOSTNAME)
+COLLECTOR_NAME = Personal Condor
+START = TRUE
+SUSPEND = FALSE
+PREEMPT = FALSE
+KILL = FALSE
+DAEMON_LIST = COLLECTOR, MASTER, NEGOTIATOR, SCHEDD, STARTD
+NEGOTIATOR_INTERVAL = 20
+TRUST_UID_DOMAIN = TRUE
+
+VM_GAHP_DEBUG = D_FULLDEBUG
+VM_GAHP_LOG = $(LOG)/VMGahpLog
+VM_GAHP_SERVER = $(SBIN)/condor_vm-gahp
+VM_TYPE = kvm
+VM_MEMORY = $(DETECTED_MEMORY)
+VM_NETWORKING = TRUE
+VM_NETWORKING_TYPE = nat,bridge
+
+LIBVIRT_XML_SCRIPT = $(LIBEXEC)/libvirt_simple_script2.awk
