@@ -1,6 +1,6 @@
 #!/bin/sh
 
-STORAGE=/home/matt/Cloud/STORAGE
+STORAGE=/home/cloud
 
 BASE_IMAGE=$1
 

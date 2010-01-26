@@ -1,6 +1,6 @@
 #!/bin/sh
 
-STORAGE=/home/matt/Cloud/STORAGE
+STORAGE=/home/cloud
 
 CAT=cat; which pv > /dev/null 2>&1 && CAT=pv
 
