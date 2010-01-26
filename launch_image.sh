@@ -4,7 +4,7 @@ STORAGE=/home/cloud
 
 BASE_IMAGE=$1
 
-COUNT=$(ls $STORAGE/$IMAGE* | wc -l)
+COUNT=$(ls $STORAGE/$BASE_IMAGE* | wc -l)
 IMAGE=$STORAGE/$BASE_IMAGE.$COUNT.qcow2
 qemu-img create -f qcow2 -b $STORAGE/$BASE_IMAGE $IMAGE > /dev/null 2>&1
 
