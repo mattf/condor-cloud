@@ -62,13 +62,37 @@ esac
 
 TMP=$(mktemp $PWD/.tmp.XXXXXX)
 cat > $TMP <<EOF
+# Use the Virtual Machine (VM) Universe, duh
 universe = vm
+
+# We'll be doing KVM only, obvi
 vm_type = kvm
+
+# Partitionable Slot Parameters: vm_memory (request_memory) and request_cpus
+
+# Ideally just request_memory, but VM Universe jobs require vm_memory
+# and the default request_memory uses vm_memory
 vm_memory = $MEMORY_MB
+
+# Number of CPUs to consume, clearly
 request_cpus = $CPU
+
+# Required parameter for VM Universe, but we are using a special
+# libvirt XML configuration generating script that entirely ignores
+# this, so we effectively null it out.
 kvm_disk = /dev/null:null:null
+
+# Only a name, but also used by the cloud prepare hook to setup and
+# set {DISK} inside VM_XML.
 executable = $BASE_IMAGE
+
+# Invoke the CLOUD prepare hook before execution. It will setup the
+# VM's disk.
 +HookKeyword="CLOUD"
+
+# libvirt domain XML, processed by the cloud prepare hook and libvirt
+# XML config script. Basically, the libvirt XML config script just
+# echos this after assigning {NAME}.
 +VM_XML="<domain type='kvm'><name>{NAME}</name><memory>$((MEMORY_MB * 1024))</memory><vcpu>$CPU</vcpu><os><type arch='i686' machine='pc-0.11'>hvm</type><boot dev='hd'/></os><features><acpi/><apic/><pae/></features><clock offset='utc'/><on_poweroff>destroy</on_poweroff><on_reboot>restart</on_reboot><on_crash>restart</on_crash><devices><emulator>/usr/bin/qemu-kvm</emulator><disk type='file' device='disk'><source file='{DISK}'/><target dev='hda' bus='ide'/></disk><interface type='network'><source network='default'/><model type='e1000'/></interface><graphics type='vnc' port='5900' autoport='yes' keymap='en-us'/></devices></domain>"
 queue
 EOF
