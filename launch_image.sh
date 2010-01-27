@@ -54,7 +54,8 @@ case $TYPE in
     CPU=2
     ;;
   large)
-    MEMORY_MB=2048
+    # 2GB = 2047MB for now, else error - qemu: at most 2047 MB RAM can be simulated
+    MEMORY_MB=2047
     CPU=4
     ;;
 esac
