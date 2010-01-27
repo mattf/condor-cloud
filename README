@@ -1,0 +1,91 @@
+Condor Cloud
+~~~~~~~~~~~~
+
+This is a set of Condor configuration settings and scripts for execute
+nodes of an IaaS cloud, and basic scripts for interaction.
+
+It supports launching three types of stateless instances; small (512MB
+RAM, 1 CPU), medium (1GB RAM, 2 CPU), and large (2GB RAM, 4 CPU). A
+users produces a QEMU disk image including a kernel and initrd,
+uploads it with add_image.sh, launches it as many times as desired
+with launch_image.sh, monitors with list_instances.sh and terminates
+by either powering the instance off from within or running
+terminate_instances.sh.
+
+All instances get a VNC console and a network interface with a dynamic
+IP.
+
+All instances are stateless, meaning they are given a fresh disk on
+each launch.
+
+NOTE: It may be necessary to disable SELinux
+
+cloud.config -
+
+Condor configuration for an execute node. Set this as
+LOCAL_CONFIG_FILE inside ~condor/condor_config.local, or drop it in a
+LOCAL_CONFIG_DIR. It does:
+
+ 1) Setup of the Virtual Machine (VM) Universe to accept KVM jobs, and
+    use a custom libvirt XML configuration script
+    (libvirt_cloud_script.sh)
+ 2) Enabling of a single partitionable slot for VM packing, with 4x
+    resources (over provisioning)
+ 3) Setup of a PREPARE job hook to retrieve the VM's base image and
+    produce a qcow2 image from it
+ 4) Setup of a STARTD_CRON (aka Hawkeye) script to advertise base
+    images already available on the execute node (cached_images.sh)
+
+cached_images.sh -
+
+A Hawkeye script to advertise images already available on the node in
+a CACHED_IMAGES attribute. Useful for RANK expressions so VMs prefer
+to run on nodes that already hold their base image.
+
+Install as $(condor_config_val STARTD_CRON_CACHED_IMAGES_EXECUTABLE)
+with permissions set to a=rx.
+
+libvirt_cloud_script.sh -
+
+The libvirt XML configuration script. It accepts a job ad on stdin and
+produces the XML to create a domain on stdout. The XML is provided by
+the job's VM_XML attribute, set from launch_image.sh. The VM_XML is
+processed to set the {NAME}, which is decided by the vm-gahp.
+
+Install as $(condor_config_val LIBVIRT_XML_SCRIPT) with permissions
+set to a=rx.
+
+cloud_prepare_hook.sh -
+
+The job hook PREPARE script. It accepts a job ad on stdin, creates the
+job's disk image (qcow2), downloading the base image if needed, and
+produces attributes updates to the job ad (one per line). It uses the
+Cmd (executable) attribute on the job ad as the name of the job's base
+image. It processes the job ad's VM_XML attribute and sets the {DISK}
+portion.
+
+add_image.sh -
+list_images.sh -
+launch_image.sh -
+list_instances.sh -
+terminate_instances.sh -
+
+These scripts do what their names suggest.
+
+ToDo:
+ o Separate the STORGE location from the local cache location. The
+   storage location may be an NFS mount or any system that allow whole
+   file put/get and list.
+ o Report VNC console port into job ad, possibly with job hook STATUS
+   script
+ o Cleanup qcow2 images, possibly with job hook EXIT script
+ o Expand to 64 and 32 bit images, currently 32 bit
+ o Properly label disk images to play nicely with SELinux policy
+ o Allow for watchdog processes within VMs
+ o Allow for fixed IPs - MAC allocator and DHCP server, or just static IP?
+ o Work out disk sizes and necessary storage in cache based on
+   possible number of concurrent instances
+ o Allow for stateful instances, possibly using concurrency limits
+ o Provide a QMF or dcloud interface
+ o Improve vm-gahp error reporting in Condor
+ o ...
