@@ -60,7 +60,7 @@ case $TYPE in
     ;;
 esac
 
-TMP=$PWD/.tmp.job
+TMP=$(mktemp $PWD/.tmp.XXXXXX)
 cat > $TMP <<EOF
 universe = vm
 vm_type = kvm
