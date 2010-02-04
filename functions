@@ -49,8 +49,9 @@ function image_exists_local {
 #
 function put_image {
    IMAGE=$1
+   IMAGE_NAME=$(basename $IMAGE)
 
-   LOCK="$STORAGE/$IMAGE.lock"
+   LOCK="$STORAGE/$IMAGE_NAME.lock"
 
    CAT=cat; which pv > /dev/null 2>&1 && CAT=pv
 
@@ -62,12 +63,12 @@ function put_image {
    trap 'rm -f $LOCK; exit $?' INT TERM EXIT
 
    RC=0
-   if ! image_exists_global $IMAGE; then
-      trap 'rm -f $LOCK; rm -f $STORAGE/$IMAGE; exit $?' INT TERM EXIT
-      ERROR_MSG=$($CAT $IMAGE > $STORAGE/$IMAGE)
+   if ! image_exists_global $IMAGE_NAME; then
+      trap 'rm -f $LOCK; rm -f $STORAGE/$IMAGE_NAME; exit $?' INT TERM EXIT
+      ERROR_MSG=$($CAT $IMAGE > $STORAGE/$IMAGE_NAME)
       if [ $? -eq 0 ]; then
          # Permissions on the image are entirely open
-         chmod a=r $STORAGE/$IMAGE
+         chmod a=r $STORAGE/$IMAGE_NAME
       else
       	 RC=1
       fi
