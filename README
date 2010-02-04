@@ -64,6 +64,9 @@ Cmd (executable) attribute on the job ad as the name of the job's base
 image. It processes the job ad's VM_XML attribute and sets the {DISK}
 portion.
 
+Install as $(condor_config_val CLOUD_HOOK_PREPARE_JOB) with
+permissions set to a=rx.
+
 add_image.sh -
 list_images.sh -
 launch_image.sh -
