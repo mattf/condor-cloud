@@ -72,6 +72,16 @@ portion.
 Install as $(condor_config_val CLOUD_HOOK_PREPARE_JOB) with
 permissions set to a=rx.
 
+cloud_exit_hook.sh -
+
+The job hook EXIT script. It is invoked when the VM exits. It takes a
+job ad on stdin, finds the disk image, and removes it. It currently
+does not work because libvirtd changes ownership of the disk image to
+root.root when the VM exits, instead of back to condor.condor.
+
+Install as $(condor_config_val CLOUD_HOOK_JOB_EXIT) with permissions
+set to a=rx.
+
 add_image.sh -
 list_images.sh -
 launch_image.sh -
@@ -81,9 +91,10 @@ terminate_instances.sh -
 These scripts do what their names suggest.
 
 ToDo:
+ o Find a way to get libvirtd to now change ownership of the disk
+   image so the cloud_exit_hook.sh will work.
  o Report VNC console port into job ad, possibly with job hook STATUS
    script
- o Cleanup qcow2 images, possibly with job hook EXIT script
  o Expand to 64 and 32 bit images, currently 32 bit
  o Properly label disk images to play nicely with SELinux policy
  o Allow for watchdog processes within VMs
