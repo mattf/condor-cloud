@@ -20,6 +20,11 @@ each launch.
 
 NOTE: It may be necessary to disable SELinux
 
+functions -
+
+Set of utility functions used by the shell scripts below. It must be
+installed in /opt/condor-cloud so it can be source'd.
+
 cloud.config -
 
 Condor configuration for an execute node. Set this as
@@ -89,6 +94,7 @@ ToDo:
  o Work out disk sizes and necessary storage in cache based on
    possible number of concurrent instances
  o Allow for stateful instances, possibly using concurrency limits
+ o Provide a security model for images
  o Provide a QMF or dcloud interface
  o Improve vm-gahp error reporting in Condor
  o ...

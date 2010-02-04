@@ -1,6 +1,6 @@
 #!/bin/sh
 
-STORAGE=/home/cloud
+source /opt/condor-cloud/functions
 
 while read line; do
    name="${line%% =*}"
@@ -11,9 +11,9 @@ while read line; do
    esac
 done
 
-COUNT=$(ls $STORAGE/$BASE_IMAGE.*.qcow2 2> /dev/null | wc -l)
-IMAGE=$STORAGE/$BASE_IMAGE.$COUNT.qcow2
-qemu-img create -f qcow2 -b $STORAGE/$BASE_IMAGE $IMAGE > /dev/null 2>&1
+get_image $BASE_IMAGE
+
+IMAGE=$(make_image $BASE_IMAGE)
 
 echo $(echo $VM_XML | sed "s:{DISK}:$IMAGE:")
 

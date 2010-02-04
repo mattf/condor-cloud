@@ -1,11 +1,6 @@
 #!/bin/sh
 
-STORAGE=/home/cloud
-
-function image_exists() {
-   IMAGE="$1"
-   test -e $STORAGE/$IMAGE
-}
+source /opt/condor-cloud/functions
 
 function usage() {
    echo "usage: $0 [-t <small|medium|large>] -i <image>"
@@ -39,7 +34,7 @@ if [ -z "$BASE_IMAGE" ]; then
    usage
 fi
 
-if ! image_exists $BASE_IMAGE; then
+if ! image_exists_global $BASE_IMAGE; then
    echo "Image '$BASE_IMAGE' does not exist, find one with list_images.sh"
    exit 2
 fi

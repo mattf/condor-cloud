@@ -1,6 +1,6 @@
 #!/bin/sh
 
-STORAGE=/home/cloud
+source /opt/condor-cloud/functions
 
 cd $STORAGE
 for i in $(echo * | tr ' ' '\n' | grep -v .qcow2); do
