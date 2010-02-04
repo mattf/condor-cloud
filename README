@@ -81,9 +81,6 @@ terminate_instances.sh -
 These scripts do what their names suggest.
 
 ToDo:
- o Separate the STORGE location from the local cache location. The
-   storage location may be an NFS mount or any system that allow whole
-   file put/get and list.
  o Report VNC console port into job ad, possibly with job hook STATUS
    script
  o Cleanup qcow2 images, possibly with job hook EXIT script
