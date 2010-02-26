@@ -3,10 +3,6 @@
 source /opt/condor-cloud/functions
 
 cd $STORAGE
-for i in $(echo * | tr ' ' '\n' | grep -v .qcow2); do
-   IMAGES="$i,$IMAGES"
-done
-
-echo "CACHED_IMAGES=\"$IMAGES\""
+echo "CACHED_IMAGES=\"$(echo * | tr ' ' '\n' | grep -v .qcow2 | tr '\n' ',')\""
 
 exit 0
