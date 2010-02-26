@@ -88,6 +88,10 @@ executable = $BASE_IMAGE
 # libvirt domain XML, processed by the cloud prepare hook and libvirt
 # XML config script. Basically, the libvirt XML config script just
 # echos this after assigning {NAME}.
+## NOTE on EL5:
+##  qemu-kvm is in /usr/libexec on EL5
+##  arch needs to be x86_64
+##  machine needs to be pc
 +VM_XML="<domain type='kvm'><name>{NAME}</name><memory>$((MEMORY_MB * 1024))</memory><vcpu>$CPU</vcpu><os><type arch='i686' machine='pc-0.11'>hvm</type><boot dev='hd'/></os><features><acpi/><apic/><pae/></features><clock offset='utc'/><on_poweroff>destroy</on_poweroff><on_reboot>restart</on_reboot><on_crash>restart</on_crash><devices><emulator>/usr/bin/qemu-kvm</emulator><disk type='file' device='disk'><source file='{DISK}'/><target dev='hda' bus='ide'/></disk><interface type='network'><source network='default'/><model type='e1000'/></interface><graphics type='vnc' port='5900' autoport='yes' keymap='en-us'/></devices></domain>"
 queue
 EOF
