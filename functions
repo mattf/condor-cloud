@@ -141,6 +141,7 @@ function get_image {
 #
 function make_image {
    BASE_IMAGE=$1
+   LOCATION=$2
 
    LOCK="$CACHE/$BASE_IMAGE.lock"
 
@@ -163,8 +164,7 @@ function make_image {
    done
    trap 'rm -f $LOCK; exit $?' INT TERM EXIT
 
-   COUNT=$(ls $CACHE/$BASE_IMAGE.*.qcow2 2> /dev/null | wc -l)
-   IMAGE=$CACHE/$BASE_IMAGE.$COUNT.qcow2
+   IMAGE=$LOCATION/$BASE_IMAGE.qcow2
 
    qemu-img create -f qcow2 -b $CACHE/$BASE_IMAGE $IMAGE > /dev/null 2>&1
    # XXX: test for success, give return value meaning

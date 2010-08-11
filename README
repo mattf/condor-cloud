@@ -91,11 +91,6 @@ terminate_instances.sh -
 These scripts do what their names suggest.
 
 ToDo:
- o Find a way to get libvirtd to now change ownership of the disk
-   image so the cloud_exit_hook.sh will work.
-  + It should be possible to write the qcow2 to $PWD, the job's
-    execute dir. However, $PWD is u=rwx,go=rx user.user, and the
-    PREPARE hook is executed as condor. OLD BUG? BZ561955
  o Report VNC console port into job ad, possibly with job hook STATUS
    script, or PREPARE hook since it is invoked by the starter
  o Expand to 64 and 32 bit images, currently 32 bit

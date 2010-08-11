@@ -13,7 +13,7 @@ done
 
 get_image $BASE_IMAGE
 
-IMAGE=$(make_image $BASE_IMAGE)
+IMAGE=$(make_image $BASE_IMAGE $PWD)
 
 echo $(echo $VM_XML | sed "s:{DISK}:$IMAGE:")
 
