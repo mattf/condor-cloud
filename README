@@ -110,3 +110,32 @@ ToDo:
  o Improve vm-gahp error reporting in Condor
  o Fix cached_images.sh to return "" instead of "*," when nothing cached
  o ...
+
+
+Setup br0:
+
+cat > /etc/sysconfig/network-scripts/ifcfg-br0 << EOF
+DEVICE=br0
+TYPE=Bridge
+BOOTPROTO=dhcp
+ONBOOT=yes
+DELAY=0
+EOF
+
+cat >> /etc/sysconfig/network-scripts/ifcfg-eth0 << EOF
+BRIDGE=br0
+EOF
+
+cat >> /etc/sysctl.conf << EOF
+
+# Disable iptables on bridged, primarily for br0
+net.bridge.bridge-nf-call-ip6tables = 0
+net.bridge.bridge-nf-call-iptables = 0
+net.bridge.bridge-nf-call-arptables = 0
+EOF
+
+sysctl -p /etc/sysctl.conf
+
+service network restart 
+
+service libvirtd reload
