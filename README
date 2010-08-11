@@ -108,7 +108,6 @@ ToDo:
  o Provide a security model for images
  o Provide a QMF or dcloud interface
  o Improve vm-gahp error reporting in Condor
- o Fix cached_images.sh to return "" instead of "*," when nothing cached
  o ...
 
 
