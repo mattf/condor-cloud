@@ -1,3 +1,3 @@
 #!/bin/sh
 
-condor_q
+condor_q -xml
