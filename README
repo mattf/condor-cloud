@@ -18,7 +18,7 @@ IP.
 All instances are stateless, meaning they are given a fresh disk on
 each launch.
 
-NOTE: It may be necessary to disable SELinux
+NOTE: It may be necessary to *disable* SELinux
 
 functions -
 
