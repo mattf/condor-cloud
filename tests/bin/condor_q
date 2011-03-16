@@ -1,0 +1,146 @@
+#!/bin/bash
+#
+# Emulate behavior of condor_q
+
+cat <<EOF
+<?xml version="1.0"?>
+<!DOCTYPE classads SYSTEM "classads.dtd">
+<classads>
+
+<c>
+    <a n="MyType"><s>Job</s></a>
+    <a n="TargetType"><s>Machine</s></a>
+    <a n="PeriodicRemove"><b v="f"/></a>
+    <a n="CommittedSlotTime"><i>0</i></a>
+    <a n="PublicClaimId"><s>&lt;172.31.0.3:52498&gt;#1300135185#12#...</s></a>
+
+    <a n="Out"><s>/dev/null</s></a>
+    <a n="VMPARAM_Kvm_Disk"><s>/home/storage/vms/Fedora_Work_Machine-clone.img:sda:w</s></a>
+    <a n="ImageSize_RAW"><i>0</i></a>
+    <a n="RemoteHost"><s>slot2@hank.mains.priv</s></a>
+    <a n="NumCkpts_RAW"><i>0</i></a>
+    <a n="NumShadowStarts"><i>1</i></a>
+
+    <a n="AutoClusterAttrs"><s>JobUniverse,LastCheckpointPlatform,NumCkpts,FileSystemDomain,DiskUsage,Requirements,NiceUser,ConcurrencyLimits</s></a>
+    <a n="JobStartDate"><i>1300202232</i></a>
+    <a n="EnteredCurrentStatus"><i>1300202232</i></a>
+    <a n="CommittedSuspensionTime"><i>0</i></a>
+    <a n="WhenToTransferOutput"><s>ON_EXIT</s></a>
+    <a n="NumSystemHolds"><i>0</i></a>
+
+    <a n="TransferErr"><b v="f"/></a>
+    <a n="NumRestarts"><i>0</i></a>
+    <a n="ImageSize"><i>0</i></a>
+    <a n="Cmd"><s>kvm_test2</s></a>
+    <a n="NumJobMatches"><i>1</i></a>
+    <a n="OrigMaxHosts"><i>1</i></a>
+
+    <a n="CurrentHosts"><i>1</i></a>
+    <a n="Iwd"><s>/home/imain</s></a>
+    <a n="CumulativeSlotTime"><i>0</i></a>
+    <a n="ExecutableSize_RAW"><i>0</i></a>
+    <a n="CondorVersion"><s>$CondorVersion: 7.7.0 Feb 18 2011 PRE-RELEASE-UWCS $</s></a>
+    <a n="RemoteUserCpu"><r>0.000000000000000E+00</r></a>
+
+    <a n="LastJobLeaseRenewal"><i>1300202232</i></a>
+    <a n="NumCkpts"><i>0</i></a>
+    <a n="JobStatus"><i>2</i></a>
+    <a n="Arguments"><s></s></a>
+    <a n="RemoteSysCpu"><r>0.000000000000000E+00</r></a>
+    <a n="OnExitRemove"><b v="t"/></a>
+    <a n="BufferBlockSize"><i>32768</i></a>
+
+    <a n="TransferExecutable"><b v="f"/></a>
+    <a n="ClusterId"><i>31</i></a>
+    <a n="In"><s>/dev/null</s></a>
+    <a n="LocalUserCpu"><r>0.000000000000000E+00</r></a>
+    <a n="StartdIpAddr"><s>&lt;172.31.0.3:52498&gt;</s></a>
+    <a n="MinHosts"><i>1</i></a>
+
+    <a n="ShadowBday"><i>1300202232</i></a>
+    <a n="Environment"><s></s></a>
+    <a n="JobUniverse"><i>13</i></a>
+    <a n="RequestDisk"><e>DiskUsage</e></a>
+    <a n="RootDir"><s>/</s></a>
+    <a n="NumJobStarts"><i>0</i></a>
+
+    <a n="VMPARAM_Kvm_Kernel_Params"><s>some kinda test</s></a>
+    <a n="JobCurrentStartDate"><i>1300202232</i></a>
+    <a n="WantRemoteIO"><b v="t"/></a>
+    <a n="RequestMemory"><e>ceiling(ifThenElse(JobVMMemory =!= undefined,JobVMMemory,ImageSize / 1024.000000))</e></a>
+    <a n="GlobalJobId"><s>hank.mains.priv#31.0#1300202231</s></a>
+    <a n="LocalSysCpu"><r>0.000000000000000E+00</r></a>
+
+    <a n="PeriodicRelease"><b v="f"/></a>
+    <a n="FileSystemDomain"><s>hank.mains.priv</s></a>
+    <a n="DiskUsage"><i>0</i></a>
+    <a n="CumulativeSuspensionTime"><i>0</i></a>
+    <a n="JobLeaseDuration"><i>1200</i></a>
+    <a n="RemoteSlotID"><i>2</i></a>
+
+    <a n="UserLog"><s>/home/imain/simple.vm.log.txt</s></a>
+    <a n="MachineAttrSlotWeight0"><i>1</i></a>
+    <a n="TransferOut"><b v="f"/></a>
+    <a n="KillSig"><s>SIGTERM</s></a>
+    <a n="ExecutableSize"><i>0</i></a>
+    <a n="JobVMNetworkingType"><s>bridge</s></a>
+
+    <a n="MaxHosts"><i>1</i></a>
+    <a n="ServerTime"><i>1300202241</i></a>
+    <a n="CoreSize"><i>0</i></a>
+    <a n="DiskUsage_RAW"><i>0</i></a>
+    <a n="ProcId"><i>0</i></a>
+    <a n="TransferFiles"><s>ONEXIT</s></a>
+
+    <a n="ShouldTransferFiles"><s>YES</s></a>
+    <a n="CommittedTime"><i>0</i></a>
+    <a n="TotalSuspensions"><i>0</i></a>
+    <a n="Err"><s>/dev/null</s></a>
+    <a n="JobVMNetworking"><b v="t"/></a>
+    <a n="JobVM_MACADDR"><s>52:54:00:ab:90:41</s></a>
+
+    <a n="AutoClusterId"><i>1</i></a>
+    <a n="LastMatchTime"><i>1300202232</i></a>
+    <a n="RequestCpus"><i>1</i></a>
+    <a n="JobVMMemory"><i>1024</i></a>
+    <a n="NiceUser"><b v="f"/></a>
+    <a n="RemoteWallClockTime"><r>0.000000000000000E+00</r></a>
+
+    <a n="PeriodicHold"><b v="f"/></a>
+    <a n="QDate"><i>1300202231</i></a>
+    <a n="OnExitHold"><b v="f"/></a>
+    <a n="Rank"><r>0.000000000000000E+00</r></a>
+    <a n="JobVM_VCPUS"><i>2</i></a>
+    <a n="ExitBySignal"><b v="f"/></a>
+    <a n="MachineAttrCpus0"><i>1</i></a>
+
+    <a n="CondorPlatform"><s>$CondorPlatform: X86_64-Fedora_14 $</s></a>
+    <a n="JobPrio"><i>0</i></a>
+    <a n="LastSuspensionTime"><i>0</i></a>
+    <a n="JobVMCheckpoint"><b v="f"/></a>
+    <a n="CurrentTime"><e>time()</e></a>
+    <a n="JobNotification"><i>2</i></a>
+
+    <a n="User"><s>imain@hank.mains.priv</s></a>
+    <a n="JobRunCount"><i>1</i></a>
+    <a n="JobVMType"><s>kvm</s></a>
+    <a n="BufferSize"><i>524288</i></a>
+    <a n="WantRemoteSyscalls"><b v="f"/></a>
+    <a n="LeaveJobInQueue"><b v="f"/></a>
+    <a n="ExitStatus"><i>0</i></a>
+
+    <a n="StartdPrincipal"><s>unauthenticated@unmapped/172.31.0.3</s></a>
+    <a n="CompletionDate"><i>0</i></a>
+    <a n="Requirements"><e>( ( TARGET.Arch == "X86_64" ) &amp;&amp; ( TARGET.HasVM ) &amp;&amp; ( TARGET.VM_Type == "kvm" ) &amp;&amp; ( TARGET.VM_AvailNum &gt; 0 ) &amp;&amp; ( TARGET.TotalDisk &gt;= DiskUsage ) &amp;&amp; ( TARGET.HasFileTransfer ) ) &amp;&amp; ( TARGET.FileSystemDomain == MY.FileSystemDomain ) &amp;&amp; ( TotalMemory &gt;= 1024 ) &amp;&amp; ( VM_Memory &gt;= 1024 ) &amp;&amp; ( VM_Networking ) &amp;&amp; ( stringListIMember("bridge",TARGET.VM_Networking_Types,",") )</e></a>
+
+    <a n="VMPARAM_No_Output_VM"><b v="t"/></a>
+    <a n="WantCheckpoint"><b v="f"/></a>
+    <a n="Owner"><s>imain</s></a>
+    <a n="LastJobStatus"><i>1</i></a>
+    <a n="TransferIn"><b v="f"/></a>
+</c>
+
+
+</classads>
+
+EOF
