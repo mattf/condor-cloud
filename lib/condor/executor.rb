@@ -45,24 +45,7 @@ module CondorCloud
     #
     def instances(opts={})
       bare_xml = Nokogiri::XML(`#{CONDOR_Q_CMD} -xml`)
-      inst_array = []
-      (bare_xml/"/classads/c").each do |c|
-        unless opts[:id].nil?
-          next unless (c/'a[@n="Cmd"]/s').text.strip==opts[:id]
-        end
-        inst_array << Instance.new(
-          :id => (c/'a[@n="Cmd"]/s').text,
-          :state => Instance::convert_condor_state((c/'a[@n="JobStatus/i"]').text.to_i),
-          :public_addresses => [ 
-            Address.new(:mac => (c/'a[@n="JobVM_MACADDR"]/s').text, :ip => @ip_agent.find_ip_by_mac((c/'a[@n="JobVM_MACADDR"]/s').text))
-          ],
-          :instance_profile => HardwareProfile.new(:memory => (c/'a[@n="JobVMMemory"]/i').text, :cpus => (c/'a[@n="JobVM_VCPUS"]/i').text),
-          :owner_id => (c/'a[@n="User"]/s').text,
-          :image => Image.new(:name => (c/'a[@n="VMPARAM_Kvm_Disk"]/s').text),
-          :realm => Realm.new(:id => (c/'a[@n="JobVMType"]/s').text)
-        )
-      end
-      inst_array
+      parse_condor_q_output(bare_xml, opts)
     end
 
     # List all files in ENV['STORAGE_DIRECTORY'] or fallback to '/home/cloud'
@@ -100,12 +83,61 @@ module CondorCloud
       job.puts "kvm_disk = /dev/null:null:null"
       job.puts "executable = #{image.description}"
       job.puts '+HookKeyword="CLOUD"'
+      job.puts "+Cmd='#{opts[:name]}'"
       job.puts "+VM_XML=\"<domain type='kvm'><name>{NAME}</name><memory>$((#{hardware_profile.memory} * 1024))</memory><vcpu>#{hardware_profile.cpus}</vcpu><os><type arch='i686' machine='pc-0.11'>hvm</type><boot dev='hd'/></os><features><acpi/><apic/><pae/></features><clock offset='utc'/><on_poweroff>destroy</on_poweroff><on_reboot>restart</on_reboot><on_crash>restart</on_crash><devices><emulator>/usr/bin/qemu-kvm</emulator><disk type='file' device='disk'><source file='{DISK}'/><target dev='hda' bus='ide'/><driver name='qemu' type='qcow2'/></disk><interface type='network'><source network='default'/><model type='e1000'/></interface><graphics type='vnc' port='5900' autoport='yes' keymap='en-us'/></devices></domain>\""
       job.puts "queue"
       job.puts ""
-      instance_id = `#{CONDOR_SUBMIT_CMD} #{job.path} | grep 'cluster'`.match(/cluster (\w+)\./).to_a.last
+      `#{CONDOR_SUBMIT_CMD} #{job.path}`
       job.close
-      instances(:id => instance_id)
+      bare_xml = Nokogiri::XML(`#{CONDOR_Q_CMD} -xml`)
+      parse_condor_q_output(bare_xml, :name => opts[:name])
+    end
+
+    # List hardware profiles available for Condor.
+    # Basically those profiles are static 'small', 'medium' and 'large'
+    #
+    # Defined as:
+    #
+    #    when { :memory => '512', :cpus => '1' } then 'small'
+    #    when { :memory => '1024', :cpus => '2' } then 'medium'
+    #    when { :memory => '2047', :cpus => '4' } then 'large'
+    #
+    # @opts - You can filter hardware_profiles using :id
+    #
+    def hardware_profiles(opts={})
+      return [
+        HardwareProfile.new(:name => 'small'),
+        HardwareProfile.new(:name => 'medium'),
+        HardwareProfile.new(:name => 'large')
+      ] unless opts[:id]
+      HardwareProfile.new(:name => opts[:id])
+    end
+
+    private
+
+    def parse_condor_q_output(bare_xml, opts={})
+      inst_array = []
+      (bare_xml/"/classads/c").each do |c|
+        unless opts[:id].nil?
+          next unless (c/'a[@n="GlobalJobId"]/s').text.strip.split('#').last==opts[:id]
+        end
+        unless opts[:name].nil?
+          next unless (c/'a[@n="Cmd"]/s').text.strip==opts[:name]
+        end
+        inst_array << Instance.new(
+          :id => (c/'a[@n="GlobalJobId"]/s').text.strip.split('#').last,
+          :name => (c/'a[@n="Cmd"]/s').text.strip,
+          :state => Instance::convert_condor_state((c/'a[@n="JobStatus/i"]').text.to_i),
+          :public_addresses => [ 
+            Address.new(:mac => (c/'a[@n="JobVM_MACADDR"]/s').text, :ip => @ip_agent.find_ip_by_mac((c/'a[@n="JobVM_MACADDR"]/s').text))
+          ],
+          :instance_profile => HardwareProfile.new(:memory => (c/'a[@n="JobVMMemory"]/i').text, :cpus => (c/'a[@n="JobVM_VCPUS"]/i').text),
+          :owner_id => (c/'a[@n="User"]/s').text,
+          :image => Image.new(:name => (c/'a[@n="VMPARAM_Kvm_Disk"]/s').text),
+          :realm => Realm.new(:id => (c/'a[@n="JobVMType"]/s').text)
+        )
+      end
+      inst_array
     end
 
   end
