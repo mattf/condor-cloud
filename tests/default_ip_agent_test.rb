@@ -1,7 +1,7 @@
 require 'tests/common'
 require 'lib/condor/executor'
 
-class TestCondorInstances < Test::Unit::TestCase
+class TestCondorIPAgent < Test::Unit::TestCase
 
   def setup
     @agent = CondorCloud::DefaultIPAgent.new(:file => "config/addresses.xml")
