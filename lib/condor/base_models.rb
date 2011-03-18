@@ -67,11 +67,13 @@ module CondorCloud
   class Image < Base
 
     attr_accessor :state
+    attr_accessor :description
 
     def initialize(opts={})
       super(opts)
       @state = opts[:state] || 'AVAILABLE'
       @name = @name.split(':').first
+      @description = opts[:description] || ''
       @id = Digest::SHA1.hexdigest(@name).to_s
       self
     end

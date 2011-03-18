@@ -15,6 +15,7 @@
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+require 'pp'
 require 'nokogiri'
 require 'lib/condor/base_models'
 require 'lib/condor/ip_agents/default'
@@ -24,6 +25,7 @@ module CondorCloud
   class DefaultExecutor
 
     CONDOR_Q_CMD = ENV['CONDOR_Q_CMD'] || "condor_q"
+    IMAGE_STORAGE = ENV['IMAGE_STORAGE'] || '/home/cloud'
 
     attr_accessor :ip_agent
 
@@ -33,6 +35,12 @@ module CondorCloud
       self
     end
 
+    # List instances using ENV['CONDOR_Q_CMD'] command.
+    # Retrieve XML from this command and parse it uring Nokogiri. Then this XML
+    # is converted to CondorCloud::Instance class
+    #
+    # @opts - This Hash can be used for filtering instances using :id => 'instance_id'
+    #
     def instances(opts={})
       bare_xml = Nokogiri::XML(`#{CONDOR_Q_CMD} -xml`)
       inst_array = []
@@ -57,6 +65,24 @@ module CondorCloud
       end
       inst_array
     end
+
+    # List all files in ENV['STORAGE_DIRECTORY'] or fallback to '/home/cloud'
+    # Conver files to CondorCloud::Image class
+    #
+    # @opts - This Hash can be used for filtering images using :id => 'SHA1 of
+    # name'
+    #
+    def images(opts={})
+      Dir["#{IMAGE_STORAGE}/*"].collect do |file|
+        image = Image.new(
+          :name => File::basename(file.downcase.tr('.', '-')),
+          :description => file
+        ) 
+        next if opts[:id] and opts[:id]!=image.id
+        image
+      end.compact
+    end
+
 
   end
 
