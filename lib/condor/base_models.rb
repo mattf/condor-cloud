@@ -93,9 +93,19 @@ module CondorCloud
     
     attr_accessor :memory
     attr_accessor :cpus
+    attr_accessor :name
 
     def initialize(opts={})
-      @memory, @cpus = opts[:memory], opts[:cpus]
+      if opts[:name]
+        @memory, @cpus = case opts[:name]
+                          when 'small' then ['512', '1']
+                          when 'medium' then ['1024', '2']
+                          when 'large' then ['2047', '4']
+                          else raise "Unknown HardwareProfile name '#{opts[:name]}'"
+                        end
+      else
+        @memory, @cpus = opts[:memory], opts[:cpus]
+      end
       @name = convert_properties_to_name(:memory => @memory, :cpus => @cpus)
       @id = @name
       self
@@ -108,6 +118,7 @@ module CondorCloud
         when { :memory => '512', :cpus => '1' } then 'small'
         when { :memory => '1024', :cpus => '2' } then 'medium'
         when { :memory => '2047', :cpus => '4' } then 'large'
+        else 'unknown'
       end
     end
 

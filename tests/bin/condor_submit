@@ -1,0 +1,19 @@
+#!/bin/sh
+#
+## FIXME: Dunno what is returned here in real. This output was grabbed form my Condor.
+#         Interesting value here is 'cluster 1', but dunno if it's instance ID
+#         For testing now I replaced:
+#
+#         Submitting job(s).
+#         1 job(s) submitted to cluster 1.
+#
+#         with:
+#
+#         Submitting job(s).
+#         1 job(s) submitted to cluster kvm_test2.
+#
+
+cat <<EOF
+Submitting job(s).
+1 job(s) submitted to cluster kvm_test2.
+EOF

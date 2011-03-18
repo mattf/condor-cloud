@@ -44,4 +44,23 @@ class TestCondorInstances < Test::Unit::TestCase
     end
   end
 
+  def test_launch_instance
+    @image = CondorCloud::Image.new(:name => 'Fedora14EmptyImage.img', :description => 'tests/images/Fedora14EmptyImage.img')
+    @hardware_profile = CondorCloud::HardwareProfile.new(:name => 'medium')
+    @condor.new do |c|
+      instance = c.launch_instance(@image, @hardware_profile)
+      assert_instance_of(Array, instance)
+      assert_instance_of(CondorCloud::Instance, instance.first)
+      assert_instance_of(CondorCloud::HardwareProfile, instance.first.instance_profile)
+      assert_equal('medium', instance.first.instance_profile.name)
+      assert_equal('1024', instance.first.instance_profile.memory)
+      assert_equal('2', instance.first.instance_profile.cpus)
+      assert_instance_of(CondorCloud::Image, instance.first.image)
+      assert_equal('77bc29be73e146e822a611c3862cda168297b125', instance.first.image.id)
+      assert_equal('/home/storage/vms/Fedora_Work_Machine-clone.img', instance.first.image.name)
+      assert_equal('192.168.1.7', instance.first.public_addresses.first.ip)
+      assert_equal('PENDING', instance.first.state)
+    end
+  end
+
 end

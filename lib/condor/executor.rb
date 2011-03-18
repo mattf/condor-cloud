@@ -17,6 +17,7 @@
 
 require 'pp'
 require 'nokogiri'
+require 'tempfile'
 require 'lib/condor/base_models'
 require 'lib/condor/ip_agents/default'
 
@@ -65,7 +66,7 @@ module CondorCloud
     end
 
     # List all files in ENV['STORAGE_DIRECTORY'] or fallback to '/home/cloud'
-    # Conver files to CondorCloud::Image class
+    # Convert files to CondorCloud::Image class
     #
     # @opts - This Hash can be used for filtering images using :id => 'SHA1 of
     # name'
@@ -81,6 +82,31 @@ module CondorCloud
       end.compact
     end
 
-  end
+    # Launch a new instance in Condor cloud using ENV['CONDOR_SUBMIT_CMD'].
+    # Return CondorCloud::Instance.
+    # 
+    # @image  - Expecting CondorCloud::Image here
+    # @hardware_profile - Expecting CondorCloud::HardwareProfile here
+    #
+    # @opts - You can specify additional parameters like :name here
+    #
+    def launch_instance(image, hardware_profile, opts={})
+      opts[:name] ||= "i-#{Time.now.to_i}"
+      job=::Tempfile.open('condor_job')
+      job.puts "universe = vm"
+      job.puts "vm_type = kvm"
+      job.puts "vm_memory = #{hardware_profile.memory}"
+      job.puts "request_cpus = #{hardware_profile.cpus}"
+      job.puts "kvm_disk = /dev/null:null:null"
+      job.puts "executable = #{image.description}"
+      job.puts '+HookKeyword="CLOUD"'
+      job.puts "+VM_XML=\"<domain type='kvm'><name>{NAME}</name><memory>$((#{hardware_profile.memory} * 1024))</memory><vcpu>#{hardware_profile.cpus}</vcpu><os><type arch='i686' machine='pc-0.11'>hvm</type><boot dev='hd'/></os><features><acpi/><apic/><pae/></features><clock offset='utc'/><on_poweroff>destroy</on_poweroff><on_reboot>restart</on_reboot><on_crash>restart</on_crash><devices><emulator>/usr/bin/qemu-kvm</emulator><disk type='file' device='disk'><source file='{DISK}'/><target dev='hda' bus='ide'/><driver name='qemu' type='qcow2'/></disk><interface type='network'><source network='default'/><model type='e1000'/></interface><graphics type='vnc' port='5900' autoport='yes' keymap='en-us'/></devices></domain>\""
+      job.puts "queue"
+      job.puts ""
+      instance_id = `#{CONDOR_SUBMIT_CMD} #{job.path} | grep 'cluster'`.match(/cluster (\w+)\./).to_a.last
+      job.close
+      instances(:id => instance_id)
+    end
 
+  end
 end
