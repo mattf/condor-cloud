@@ -89,4 +89,28 @@ module CondorCloud
     end
   end
 
+  class HardwareProfile < Base
+    
+    attr_accessor :memory
+    attr_accessor :cpus
+
+    def initialize(opts={})
+      @memory, @cpus = opts[:memory], opts[:cpus]
+      @name = convert_properties_to_name(:memory => @memory, :cpus => @cpus)
+      @id = @name
+      self
+    end
+
+    private
+
+    def convert_properties_to_name(properties)
+      case properties
+        when { :memory => '512', :cpus => '1' } then 'small'
+        when { :memory => '1024', :cpus => '2' } then 'medium'
+        when { :memory => '2047', :cpus => '4' } then 'large'
+      end
+    end
+
+  end
+
 end

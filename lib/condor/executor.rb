@@ -25,6 +25,7 @@ module CondorCloud
   class DefaultExecutor
 
     CONDOR_Q_CMD = ENV['CONDOR_Q_CMD'] || "condor_q"
+    CONDOR_SUBMIT_CMD = ENV['CONDOR_SUBMIT_CMD'] || 'condor_submit'
     IMAGE_STORAGE = ENV['IMAGE_STORAGE'] || '/home/cloud'
 
     attr_accessor :ip_agent
@@ -54,10 +55,7 @@ module CondorCloud
           :public_addresses => [ 
             Address.new(:mac => (c/'a[@n="JobVM_MACADDR"]/s').text, :ip => @ip_agent.find_ip_by_mac((c/'a[@n="JobVM_MACADDR"]/s').text))
           ],
-          :instance_profile => {
-            :cpus => (c/'a[@n="JobVM_VCPUS"]/i').text,
-            :memory => (c/'a[@n="JobVMMemory"]/i').text
-          },
+          :instance_profile => HardwareProfile.new(:memory => (c/'a[@n="JobVMMemory"]/i').text, :cpus => (c/'a[@n="JobVM_VCPUS"]/i').text),
           :owner_id => (c/'a[@n="User"]/s').text,
           :image => Image.new(:name => (c/'a[@n="VMPARAM_Kvm_Disk"]/s').text),
           :realm => Realm.new(:id => (c/'a[@n="JobVMType"]/s').text)
@@ -82,7 +80,6 @@ module CondorCloud
         image
       end.compact
     end
-
 
   end
 

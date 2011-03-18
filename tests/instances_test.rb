@@ -28,10 +28,11 @@ class TestCondorInstances < Test::Unit::TestCase
     @condor.new do |c|
       assert_equal('kvm_test2', c.instances.first.id)
       assert_equal('kvm_test2', c.instances.first.id)
-      assert_instance_of(Hash, c.instances.first.instance_profile)
-      assert_equal('52:54:00:ab:90:41', c.instances.first.mac_address)
+      assert_instance_of(CondorCloud::HardwareProfile, c.instances.first.instance_profile)
       assert_equal('PENDING', c.instances.first.state)
-      assert_equal('192.168.1.7', c.instances.first.public_addresses.first)
+      assert_instance_of(CondorCloud::Address, c.instances.first.public_addresses.first)
+      assert_equal('192.168.1.7', c.instances.first.public_addresses.first.ip)
+      assert_equal('52:54:00:ab:90:41', c.instances.first.public_addresses.first.mac)
     end
   end
 
