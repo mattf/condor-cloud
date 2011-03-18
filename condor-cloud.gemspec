@@ -39,8 +39,9 @@ Gem::Specification.new do |s|
     'COPYING',
     '*.gemspec',
     '*.rb',
+    'config/*',
     'lib/**/*.rb',
-    'tests/**/*.rb'
+    'tests/**/*'
   ].to_a
 
   s.test_files= Dir.glob("tests/*_test.rb")
