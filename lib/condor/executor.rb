@@ -20,8 +20,8 @@
 require 'pp'
 require 'nokogiri'
 require 'tempfile'
-require 'lib/condor/base_models'
-require 'lib/condor/ip_agents/default'
+require 'condor/base_models'
+require 'condor/ip_agents/default'
 
 module CondorCloud
 
