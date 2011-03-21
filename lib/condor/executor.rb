@@ -59,7 +59,7 @@ module CondorCloud
     def images(opts={})
       Dir["#{IMAGE_STORAGE}/*"].collect do |file|
         image = Image.new(
-          :name => File::basename(file.downcase.tr('.', '-')),
+          :name => File::basename(file).downcase.tr('.', '-'),
           :description => file
         ) 
         next if opts[:id] and opts[:id]!=image.id
@@ -82,15 +82,16 @@ module CondorCloud
       job.puts "vm_type = kvm"
       job.puts "vm_memory = #{hardware_profile.memory}"
       job.puts "request_cpus = #{hardware_profile.cpus}"
-      job.puts "kvm_disk = /dev/null:null:null"
+      job.puts "kvm_disk = #{image.description}:null:null"
       job.puts "executable = #{image.description}"
       job.puts '+HookKeyword="CLOUD"'
-      job.puts "+Cmd='#{opts[:name]}'"
+      job.puts "+Cmd=\"#{opts[:name]}\""
       job.puts "+VM_XML=\"<domain type='kvm'><name>{NAME}</name><memory>$((#{hardware_profile.memory} * 1024))</memory><vcpu>#{hardware_profile.cpus}</vcpu><os><type arch='i686' machine='pc-0.11'>hvm</type><boot dev='hd'/></os><features><acpi/><apic/><pae/></features><clock offset='utc'/><on_poweroff>destroy</on_poweroff><on_reboot>restart</on_reboot><on_crash>restart</on_crash><devices><emulator>/usr/bin/qemu-kvm</emulator><disk type='file' device='disk'><source file='{DISK}'/><target dev='hda' bus='ide'/><driver name='qemu' type='qcow2'/></disk><interface type='network'><source network='default'/><model type='e1000'/></interface><graphics type='vnc' port='5900' autoport='yes' keymap='en-us'/></devices></domain>\""
       job.puts "queue"
       job.puts ""
-      `#{CONDOR_SUBMIT_CMD} #{job.path}`
       job.close
+      `#{CONDOR_SUBMIT_CMD} #{job.path}`
+      job.unlink
       bare_xml = Nokogiri::XML(`#{CONDOR_Q_CMD} -xml`)
       parse_condor_q_output(bare_xml, :name => opts[:name])
     end
@@ -135,7 +136,7 @@ module CondorCloud
           ],
           :instance_profile => HardwareProfile.new(:memory => (c/'a[@n="JobVMMemory"]/i').text, :cpus => (c/'a[@n="JobVM_VCPUS"]/i').text),
           :owner_id => (c/'a[@n="User"]/s').text,
-          :image => Image.new(:name => (c/'a[@n="VMPARAM_Kvm_Disk"]/s').text),
+          :image => Image.new(:name => File::basename((c/'a[@n="VMPARAM_Kvm_Disk"]/s').text.split(':').first).downcase.tr('.', '-')),
           :realm => Realm.new(:id => (c/'a[@n="JobVMType"]/s').text)
         )
       end
