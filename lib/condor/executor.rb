@@ -28,6 +28,7 @@ module CondorCloud
   class DefaultExecutor
 
     CONDOR_Q_CMD = ENV['CONDOR_Q_CMD'] || "condor_q"
+    CONDOR_RM_CMD = ENV['CONDOR_RM_CMD'] || "condor_rm"
     CONDOR_SUBMIT_CMD = ENV['CONDOR_SUBMIT_CMD'] || 'condor_submit'
     IMAGE_STORAGE = ENV['IMAGE_STORAGE'] || '/home/cloud'
 
@@ -94,6 +95,14 @@ module CondorCloud
       job.unlink
       bare_xml = Nokogiri::XML(`#{CONDOR_Q_CMD} -xml`)
       parse_condor_q_output(bare_xml, :name => opts[:name])
+    end
+
+    def destroy_instance(instance_id)
+      bare_xml = Nokogiri::XML(`#{CONDOR_Q_CMD} -xml`)
+      cluster_id = (bare_xml/'/classads/c/a[@n="GlobalJobId"]/s').collect do |id|
+        id.text.split('#')[1] if id.text.split('#').last==instance_id
+      end.compact.first
+      `#{CONDOR_RM_CMD} #{cluster_id}`
     end
 
     # List hardware profiles available for Condor.
