@@ -136,18 +136,24 @@ module CondorCloud
         unless opts[:name].nil?
           next unless (c/'a[@n="Cmd"]/s').text.strip==opts[:name]
         end
-        inst_array << Instance.new(
-          :id => (c/'a[@n="GlobalJobId"]/s').text.strip.split('#').last,
-          :name => (c/'a[@n="Cmd"]/s').text.strip,
-          :state => Instance::convert_condor_state((c/'a[@n="JobStatus/i"]').text.to_i),
-          :public_addresses => [ 
-            Address.new(:mac => (c/'a[@n="JobVM_MACADDR"]/s').text, :ip => @ip_agent.find_ip_by_mac((c/'a[@n="JobVM_MACADDR"]/s').text))
-          ],
-          :instance_profile => HardwareProfile.new(:memory => (c/'a[@n="JobVMMemory"]/i').text, :cpus => (c/'a[@n="JobVM_VCPUS"]/i').text),
-          :owner_id => (c/'a[@n="User"]/s').text,
-          :image => Image.new(:name => File::basename((c/'a[@n="VMPARAM_Kvm_Disk"]/s').text.split(':').first).downcase.tr('.', '-')),
-          :realm => Realm.new(:id => (c/'a[@n="JobVMType"]/s').text)
-        )
+        # Even with the checks above this can still fail because there may be other condor jobs
+        # in the queue formatted in ways we don't know.
+        begin
+          inst_array << Instance.new(
+            :id => (c/'a[@n="GlobalJobId"]/s').text.strip.split('#').last,
+            :name => (c/'a[@n="Cmd"]/s').text.strip,
+            :state => Instance::convert_condor_state((c/'a[@n="JobStatus/i"]').text.to_i),
+            :public_addresses => [
+              Address.new(:mac => (c/'a[@n="JobVM_MACADDR"]/s').text, :ip => @ip_agent.find_ip_by_mac((c/'a[@n="JobVM_MACADDR"]/s').text))
+            ],
+            :instance_profile => HardwareProfile.new(:memory => (c/'a[@n="JobVMMemory"]/i').text, :cpus => (c/'a[@n="JobVM_VCPUS"]/i').text),
+            :owner_id => (c/'a[@n="User"]/s').text,
+            :image => Image.new(:name => File::basename((c/'a[@n="VMPARAM_Kvm_Disk"]/s').text.split(':').first).downcase.tr('.', '-')),
+            :realm => Realm.new(:id => (c/'a[@n="JobVMType"]/s').text)
+          )
+        rescue Exception => e
+          # Be nice to log something here in case we start getting silent failures.
+        end
       end
       inst_array
     end
