@@ -1,3 +1,30 @@
+Condor Cloud Deltacloud API driver
+~~~~~~~~~~~~
+
+Requirements:
+
+* Condor installed using steps from 'Condor Cloud' section
+* Commands in shell path: condor_q, condor_submit and condor_rm
+* VM images in /home/cloud directory (this can be overwritten using
+  IMAGE_STORAGE environment variable 
+
+Instalation:
+
+1. Copy deltacloud-condor-driver/* into core/server/lib/deltacloud/drivers/condor
+2. Edit core/server/config/drivers.yaml and add following lines to enable Condor driver:
+
+:condor:
+  :name: Condor
+
+3. Start Deltacloud API using: ./bin/deltacloudd -i condor
+
+Testing && Developing:
+
+Test::Unit files are located in 'test' directory, but to execute them you need to do
+some modifications in executor.rb. First you need to change a path for base_model, because
+it's set to Deltacloud API default dir.
+Then you can execute test suite using: 'rake test'
+
 Condor Cloud
 ~~~~~~~~~~~~
 
