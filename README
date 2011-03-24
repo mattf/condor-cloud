@@ -10,13 +10,15 @@ Requirements:
 
 Instalation:
 
-1. Copy deltacloud-condor-driver/* into core/server/lib/deltacloud/drivers/condor
-2. Edit core/server/config/drivers.yaml and add following lines to enable Condor driver:
+1. git clone git://git.apache.org/deltacloud.git core
+2. Copy deltacloud-condor-driver/* into core/server/lib/deltacloud/drivers/condor
+3. Edit core/server/config/drivers.yaml and add following lines to enable Condor driver:
 
 :condor:
   :name: Condor
 
-3. Start Deltacloud API using: ./bin/deltacloudd -i condor
+4. Copy config/addresses.xml into core/server/config/
+5. Start Deltacloud API using: ./bin/deltacloudd -i condor
 
 Testing && Developing:
 
