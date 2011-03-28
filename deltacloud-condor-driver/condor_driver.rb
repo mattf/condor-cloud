@@ -17,6 +17,8 @@
 #
 
 require 'deltacloud/base_driver'
+require 'deltacloud/drivers/condor/client/base_models'
+require 'deltacloud/drivers/condor/client/ip_agents/default'
 require 'deltacloud/drivers/condor/client/executor'
 
 module Deltacloud

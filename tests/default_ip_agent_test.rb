@@ -18,7 +18,6 @@
 #
 
 require 'tests/common'
-require 'lib/condor/executor'
 
 class TestCondorIPAgent < Test::Unit::TestCase
 

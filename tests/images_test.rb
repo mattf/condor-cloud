@@ -1,4 +1,3 @@
-#
 # Copyright (C) 2011  Red Hat, Inc.
 #
 # Licensed to the Apache Software Foundation (ASF) under one or more
@@ -18,7 +17,6 @@
 #
 
 require 'tests/common'
-require 'lib/condor/executor'
 
 class TestCondorImages < Test::Unit::TestCase
 
@@ -49,6 +47,5 @@ class TestCondorImages < Test::Unit::TestCase
       assert_equal('tests/images/RHEL5EmptyImage.img', c.images(:id => '44bb0dfc4aef045cfee9a05940ed5db94d1c6970').first.description)
     end
   end
-
   
 end

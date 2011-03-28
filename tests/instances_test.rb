@@ -18,7 +18,6 @@
 #
 
 require 'tests/common'
-require 'lib/condor/executor'
 
 class TestCondorInstances < Test::Unit::TestCase
 
@@ -38,8 +37,8 @@ class TestCondorInstances < Test::Unit::TestCase
   def test_first_instance_image
     @condor.new do |c|
       assert_instance_of(CondorCloud::Image, c.instances.first.image)
-      assert_equal('77bc29be73e146e822a611c3862cda168297b125', c.instances.first.image.id)
-      assert_equal('/home/storage/vms/Fedora_Work_Machine-clone.img', c.instances.first.image.name)
+      assert_equal('7de6086a9e6ff76dd8bd37c9e770ab4f5cb4649a', c.instances.first.image.id)
+      assert_equal('fedora_work_machine-clone-img', c.instances.first.image.name)
     end
   end
 
@@ -75,8 +74,8 @@ class TestCondorInstances < Test::Unit::TestCase
       assert_equal('1024', instance.first.instance_profile.memory)
       assert_equal('2', instance.first.instance_profile.cpus)
       assert_instance_of(CondorCloud::Image, instance.first.image)
-      assert_equal('77bc29be73e146e822a611c3862cda168297b125', instance.first.image.id)
-      assert_equal('/home/storage/vms/Fedora_Work_Machine-clone.img', instance.first.image.name)
+      assert_equal('7de6086a9e6ff76dd8bd37c9e770ab4f5cb4649a', instance.first.image.id)
+      assert_equal('fedora_work_machine-clone-img', instance.first.image.name)
       assert_equal('192.168.1.7', instance.first.public_addresses.first.ip)
       assert_equal('PENDING', instance.first.state)
     end
