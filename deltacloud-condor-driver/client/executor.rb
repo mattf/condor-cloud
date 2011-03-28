@@ -83,7 +83,7 @@ module CondorCloud
       job.puts "vm_type = kvm"
       job.puts "vm_memory = #{hardware_profile.memory}"
       job.puts "request_cpus = #{hardware_profile.cpus}"
-      job.puts "kvm_disk = #{image.description}:null:null"
+      job.puts "vm_disk = #{image.description}:null:null"
       job.puts "executable = #{image.description}"
       job.puts '+HookKeyword="CLOUD"'
       job.puts "+Cmd=\"#{opts[:name]}\""
