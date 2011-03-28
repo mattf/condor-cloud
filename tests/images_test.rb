@@ -44,6 +44,7 @@ class TestCondorImages < Test::Unit::TestCase
     @condor.new do |c|
       assert_equal('rhel5emptyimage-img', c.images(:id => '44bb0dfc4aef045cfee9a05940ed5db94d1c6970').first.name)
       assert_equal('AVAILABLE', c.images(:id => '44bb0dfc4aef045cfee9a05940ed5db94d1c6970').first.state)
+      assert_not_equal('unknown', c.images(:id => '44bb0dfc4aef045cfee9a05940ed5db94d1c6970').first.owner)
       assert_equal('tests/images/RHEL5EmptyImage.img', c.images(:id => '44bb0dfc4aef045cfee9a05940ed5db94d1c6970').first.description)
     end
   end

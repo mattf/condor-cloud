@@ -65,7 +65,7 @@ module Deltacloud
                 :name => image.name,
                 :state => image.state,
                 :architecture => 'x86_64',        # TODO: Get proper value here
-                :ownership => 'root',             # TODO: Add proper user here (system user?)
+                :ownership => image.owner,
                 :description => image.description
               )
             end

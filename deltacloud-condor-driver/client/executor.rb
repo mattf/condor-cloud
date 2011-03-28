@@ -19,6 +19,7 @@
 
 require 'pp'
 require 'nokogiri'
+require 'etc'
 require 'tempfile'
 
 module CondorCloud
@@ -59,6 +60,7 @@ module CondorCloud
       Dir["#{IMAGE_STORAGE}/*"].collect do |file|
         image = Image.new(
           :name => File::basename(file).downcase.tr('.', '-'),
+          :owner => Etc.getpwuid(File.stat(file).uid).name,
           :description => file
         ) 
         next if opts[:id] and opts[:id]!=image.id

@@ -68,10 +68,12 @@ module CondorCloud
 
     attr_accessor :state
     attr_accessor :description
+    attr_accessor :owner
 
     def initialize(opts={})
       super(opts)
       @state = opts[:state] || 'AVAILABLE'
+      @owner = opts[:owner] || 'unknown'
       @name = @name.split(':').first
       @description = opts[:description] || ''
       @id = Digest::SHA1.hexdigest(@name).to_s
