@@ -78,21 +78,26 @@ module CondorCloud
       raise "Image object must be not nil" unless image 
       raise "HardwareProfile object must be not nil" unless hardware_profile
       opts[:name] ||= "i-#{Time.now.to_i}"
-      job=::Tempfile.open('condor_job')
-      job.puts "universe = vm"
-      job.puts "vm_type = kvm"
-      job.puts "vm_memory = #{hardware_profile.memory}"
-      job.puts "request_cpus = #{hardware_profile.cpus}"
-      job.puts "vm_disk = #{image.description}:null:null"
-      job.puts "executable = #{image.description}"
-      job.puts '+HookKeyword="CLOUD"'
-      job.puts "+Cmd=\"#{opts[:name]}\""
-      job.puts "+VM_XML=\"<domain type='kvm'><name>{NAME}</name><memory>$((#{hardware_profile.memory} * 1024))</memory><vcpu>#{hardware_profile.cpus}</vcpu><os><type arch='i686' machine='pc-0.11'>hvm</type><boot dev='hd'/></os><features><acpi/><apic/><pae/></features><clock offset='utc'/><on_poweroff>destroy</on_poweroff><on_reboot>restart</on_reboot><on_crash>restart</on_crash><devices><emulator>/usr/bin/qemu-kvm</emulator><disk type='file' device='disk'><source file='{DISK}'/><target dev='hda' bus='ide'/><driver name='qemu' type='qcow2'/></disk><interface type='network'><source network='default'/><model type='e1000'/></interface><graphics type='vnc' port='5900' autoport='yes' keymap='en-us'/></devices></domain>\""
-      job.puts "queue"
-      job.puts ""
-      job.close
-      `#{CONDOR_SUBMIT_CMD} #{job.path}`
-      job.unlink
+
+      # I use the 2>&1 to get stderr and stdout together because popen3 does not support
+      # the ability to get the exit value of the command in ruby 1.8.
+      pipe = IO.popen("#{CONDOR_SUBMIT_CMD} 2>&1", "w+")
+      pipe.puts "universe = vm"
+      pipe.puts "vm_type = kvm"
+      pipe.puts "vm_memory = #{hardware_profile.memory}"
+      pipe.puts "request_cpus = #{hardware_profile.cpus}"
+      pipe.puts "vm_disk = #{image.description}:null:null"
+      pipe.puts "executable = #{image.description}"
+      pipe.puts '+HookKeyword="CLOUD"'
+      pipe.puts "+Cmd=\"#{opts[:name]}\""
+      pipe.puts "+VM_XML=\"<domain type='kvm'><name>{NAME}</name><memory>$((#{hardware_profile.memory} * 1024))</memory><vcpu>#{hardware_profile.cpus}</vcpu><os><type arch='i686' machine='pc-0.11'>hvm</type><boot dev='hd'/></os><features><acpi/><apic/><pae/></features><clock offset='utc'/><on_poweroff>destroy</on_poweroff><on_reboot>restart</on_reboot><on_crash>restart</on_crash><devices><emulator>/usr/bin/qemu-kvm</emulator><disk type='file' device='disk'><source file='{DISK}'/><target dev='hda' bus='ide'/><driver name='qemu' type='qcow2'/></disk><interface type='network'><source network='default'/><model type='e1000'/></interface><graphics type='vnc' port='5900' autoport='yes' keymap='en-us'/></devices></domain>\""
+      pipe.puts "queue"
+      pipe.puts ""
+      pipe.close_write
+      out = pipe.read
+      pipe.close
+      raise ("Error starting VM in condor_submit: #{out}") if $? != 0
+
       bare_xml = Nokogiri::XML(`#{CONDOR_Q_CMD} -xml`)
       parse_condor_q_output(bare_xml, :name => opts[:name])
     end
@@ -148,10 +153,13 @@ module CondorCloud
             ],
             :instance_profile => HardwareProfile.new(:memory => (c/'a[@n="JobVMMemory"]/i').text, :cpus => (c/'a[@n="JobVM_VCPUS"]/i').text),
             :owner_id => (c/'a[@n="User"]/s').text,
-            :image => Image.new(:name => File::basename((c/'a[@n="VMPARAM_Kvm_Disk"]/s').text.split(':').first).downcase.tr('.', '-')),
+            :image => Image.new(:name => File::basename((c/'a[@n="VMPARAM_vm_Disk"]/s').text.split(':').first).downcase.tr('.', '-')),
             :realm => Realm.new(:id => (c/'a[@n="JobVMType"]/s').text)
           )
         rescue Exception => e
+          puts "Caught exception: #{e}"
+          puts e.message
+          puts e.backtrace
           # Be nice to log something here in case we start getting silent failures.
         end
       end
