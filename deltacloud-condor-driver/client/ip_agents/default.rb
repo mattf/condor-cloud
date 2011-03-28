@@ -21,8 +21,22 @@ require 'nokogiri'
 
 module CondorCloud
 
+  class IPAgent
 
-  class DefaultIPAgent
+    def find_mac_by_ip(ip); end
+    def find_ip_by_mac(mac); end
+
+    # This method must return an Array of 'Address' objects
+    # [ Address.new, Address.new ]
+    def addresses; end
+  end
+
+
+  # Default IP agent will lookup addresses from XML
+  # files stored in config directory.
+  # You can overide default directory using { :file => 'path' }
+  #
+  class DefaultIPAgent < IPAgent
     
     def initialize(opts={})
       @mappings = Nokogiri::XML(File.open(opts[:file] || File.join('config', 'addresses.xml')))

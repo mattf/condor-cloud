@@ -70,6 +70,8 @@ module CondorCloud
     attr_accessor :description
     attr_accessor :owner
 
+    # Image ID is automatically created using SHA1 hash from image name
+    # since filename must be unique in directory
     def initialize(opts={})
       super(opts)
       @state = opts[:state] || 'AVAILABLE'
@@ -97,6 +99,9 @@ module CondorCloud
     attr_accessor :cpus
     attr_accessor :name
 
+    # You can create hardware profile using { :name => "small|medium|large" }
+    # or specifying :memory and :cpus
+    #
     def initialize(opts={})
       if opts[:name]
         @memory, @cpus = case opts[:name]

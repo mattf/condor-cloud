@@ -1,4 +1,3 @@
-#
 # Copyright (C) 2011  Red Hat, Inc.
 #
 # Licensed to the Apache Software Foundation (ASF) under one or more
@@ -15,7 +14,6 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
 # License for the specific language governing permissions and limitations
 # under the License.
-#
 
 require 'pp'
 require 'nokogiri'
@@ -77,6 +75,8 @@ module CondorCloud
     # @opts - You can specify additional parameters like :name here
     #
     def launch_instance(image, hardware_profile, opts={})
+      raise "Image object must be not nil" unless image 
+      raise "HardwareProfile object must be not nil" unless hardware_profile
       opts[:name] ||= "i-#{Time.now.to_i}"
       job=::Tempfile.open('condor_job')
       job.puts "universe = vm"
