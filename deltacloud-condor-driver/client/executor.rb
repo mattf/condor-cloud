@@ -86,7 +86,7 @@ module CondorCloud
       pipe.puts "vm_type = kvm"
       pipe.puts "vm_memory = #{hardware_profile.memory}"
       pipe.puts "request_cpus = #{hardware_profile.cpus}"
-      pipe.puts "vm_disk = #{image.description}:null:null"
+      pipe.puts "kvm_disk = #{image.description}:null:null"
       pipe.puts "executable = #{image.description}"
       pipe.puts '+HookKeyword="CLOUD"'
       pipe.puts "+Cmd=\"#{opts[:name]}\""
@@ -153,7 +153,7 @@ module CondorCloud
             ],
             :instance_profile => HardwareProfile.new(:memory => (c/'a[@n="JobVMMemory"]/i').text, :cpus => (c/'a[@n="JobVM_VCPUS"]/i').text),
             :owner_id => (c/'a[@n="User"]/s').text,
-            :image => Image.new(:name => File::basename((c/'a[@n="VMPARAM_vm_Disk"]/s').text.split(':').first).downcase.tr('.', '-')),
+            :image => Image.new(:name => File::basename((c/'a[@n="VMPARAM_Kvm_Disk"]/s').text.split(':').first).downcase.tr('.', '-')),
             :realm => Realm.new(:id => (c/'a[@n="JobVMType"]/s').text)
           )
         rescue Exception => e
