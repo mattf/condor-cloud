@@ -27,7 +27,7 @@ module CondorCloud
     CONDOR_Q_CMD = ENV['CONDOR_Q_CMD'] || "condor_q"
     CONDOR_RM_CMD = ENV['CONDOR_RM_CMD'] || "condor_rm"
     CONDOR_SUBMIT_CMD = ENV['CONDOR_SUBMIT_CMD'] || 'condor_submit'
-    IMAGE_STORAGE = ENV['IMAGE_STORAGE'] || '/home/cloud'
+    IMAGE_STORAGE = ENV['IMAGE_STORAGE'] || '/home/cloud/images'
 
     attr_accessor :ip_agent
 
@@ -48,7 +48,7 @@ module CondorCloud
       parse_condor_q_output(bare_xml, opts)
     end
 
-    # List all files in ENV['STORAGE_DIRECTORY'] or fallback to '/home/cloud'
+    # List all files in ENV['STORAGE_DIRECTORY'] or fallback to '/home/cloud/images'
     # Convert files to CondorCloud::Image class
     #
     # @opts - This Hash can be used for filtering images using :id => 'SHA1 of

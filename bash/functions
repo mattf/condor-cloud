@@ -1,5 +1,5 @@
-STORAGE=/home/cloud
-CACHE=/home/cloud-local
+STORAGE=/home/cloud/images
+CACHE=/home/cloud/cache
 
 ERROR_MSG=
 
