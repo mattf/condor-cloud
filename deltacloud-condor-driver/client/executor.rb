@@ -80,22 +80,31 @@ module CondorCloud
       opts[:name] ||= "i-#{Time.now.to_i}"
 
       # This needs to be determined by the mac/ip translation stuff.
-      mac_addr = '52:54:00:ab:90:44'
+      # We need to call into it and have it return these variables, or at least the MAC if not the IP.
+      mac_addr = '00:1A:4A:22:20:01'
+      ip_addr = '172.31.0.101'
 
       # I use the 2>&1 to get stderr and stdout together because popen3 does not support
       # the ability to get the exit value of the command in ruby 1.8.
       pipe = IO.popen("#{CONDOR_SUBMIT_CMD} 2>&1", "w+")
-      pipe.puts "universe = vm"
-      pipe.puts "vm_type = kvm"
-      pipe.puts "vm_memory = #{hardware_profile.memory}"
-      pipe.puts "request_cpus = #{hardware_profile.cpus}"
-      pipe.puts "kvm_disk = #{image.description}:null:null"
-      pipe.puts "executable = #{image.description}"
+      pipe.puts "universe=vm"
+      pipe.puts "vm_type=kvm"
+      pipe.puts "vm_memory=#{hardware_profile.memory}"
+      pipe.puts "request_cpus=#{hardware_profile.cpus}"
+      pipe.puts "vm_disk=#{image.description}:null:null"
+      pipe.puts "executable=#{image.description}"
+      pipe.puts "vm_macaddr=#{mac_addr}"
+
+      # Only set the ip if it is available, and this should depend on the IP mapping used.
+      # With the fixed mapping method we know the IP address right away before we start the
+      # instance, so fill it in here.  If it is not set I think we should set it to an empty
+      # string and we'll fill it in later using a condor tool to update the job.
+      pipe.puts "+vm_ipaddr=\"#{ip_addr}\""
       pipe.puts '+HookKeyword="CLOUD"'
       pipe.puts "+Cmd=\"#{opts[:name]}\""
       # Really the image should not be a full path to begin with I think..
       pipe.puts "+cloud_image=\"#{File.basename(image.description)}\""
-      pipe.puts "+VM_XML=\"<domain type='kvm'><name>#{opts[:name]}</name><memory>#{hardware_profile.memory.to_i * 1024}</memory><vcpu>#{hardware_profile.cpus}</vcpu><os><type arch='x86_64' machine='pc-0.13'>hvm</type><boot dev='hd'/></os><features><acpi/><apic/><pae/></features><clock offset='utc'/><on_poweroff>destroy</on_poweroff><on_reboot>restart</on_reboot><on_crash>restart</on_crash><devices><emulator>/usr/bin/qemu-kvm</emulator><disk type='file' device='disk'><source file='{DISK}'/><target dev='vda' bus='virtio'/><driver name='qemu' type='qcow2'/></disk><interface type='bridge'><mac address='#{mac_addr}'/><source bridge='vnet0'/><alias name='net0'/></interface><graphics type='vnc' port='5900' autoport='yes' keymap='en-us'/></devices></domain>\""
+      pipe.puts "+VM_XML=\"<domain type='kvm'><name>{NAME}</name><memory>#{hardware_profile.memory.to_i * 1024}</memory><vcpu>#{hardware_profile.cpus}</vcpu><os><type arch='x86_64' machine='pc-0.13'>hvm</type><boot dev='hd'/></os><features><acpi/><apic/><pae/></features><clock offset='utc'/><on_poweroff>destroy</on_poweroff><on_reboot>restart</on_reboot><on_crash>restart</on_crash><devices><emulator>/usr/bin/qemu-kvm</emulator><disk type='file' device='disk'><source file='{DISK}'/><target dev='vda' bus='virtio'/><driver name='qemu' type='qcow2'/></disk><interface type='bridge'><mac address='#{mac_addr}'/><source bridge='vnet0'/><alias name='net0'/></interface><graphics type='vnc' port='5900' autoport='yes' keymap='en-us'/></devices></domain>\""
       pipe.puts "queue"
       pipe.puts ""
       pipe.close_write
@@ -149,16 +158,17 @@ module CondorCloud
         # Even with the checks above this can still fail because there may be other condor jobs
         # in the queue formatted in ways we don't know.
         begin
+          puts "condor state is #{(c/'a[@n="JobStatus/i"]').text.to_i}"
           inst_array << Instance.new(
             :id => (c/'a[@n="GlobalJobId"]/s').text.strip.split('#').last,
             :name => (c/'a[@n="Cmd"]/s').text.strip,
             :state => Instance::convert_condor_state((c/'a[@n="JobStatus/i"]').text.to_i),
             :public_addresses => [
-              Address.new(:mac => (c/'a[@n="JobVM_MACADDR"]/s').text, :ip => @ip_agent.find_ip_by_mac((c/'a[@n="JobVM_MACADDR"]/s').text))
+              Address.new(:mac => (c/'a[@n="JobVM_MACADDR"]/s').text, :ip => (c/'a[@n="vm_ipaddr"]/s').text)
             ],
             :instance_profile => HardwareProfile.new(:memory => (c/'a[@n="JobVMMemory"]/i').text, :cpus => (c/'a[@n="JobVM_VCPUS"]/i').text),
             :owner_id => (c/'a[@n="User"]/s').text,
-            :image => Image.new(:name => File::basename((c/'a[@n="VMPARAM_Kvm_Disk"]/s').text.split(':').first).downcase.tr('.', '-')),
+            :image => Image.new(:name => File::basename((c/'a[@n="VMPARAM_vm_Disk"]/s').text.split(':').first).downcase.tr('.', '-')),
             :realm => Realm.new(:id => (c/'a[@n="JobVMType"]/s').text)
           )
         rescue Exception => e
