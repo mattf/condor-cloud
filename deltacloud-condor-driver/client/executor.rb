@@ -158,11 +158,10 @@ module CondorCloud
         # Even with the checks above this can still fail because there may be other condor jobs
         # in the queue formatted in ways we don't know.
         begin
-          puts "condor state is #{(c/'a[@n="JobStatus/i"]').text.to_i}"
           inst_array << Instance.new(
             :id => (c/'a[@n="GlobalJobId"]/s').text.strip.split('#').last,
             :name => (c/'a[@n="Cmd"]/s').text.strip,
-            :state => Instance::convert_condor_state((c/'a[@n="JobStatus/i"]').text.to_i),
+            :state => Instance::convert_condor_state((c/'a[@n="JobStatus"]/i').text.to_i),
             :public_addresses => [
               Address.new(:mac => (c/'a[@n="JobVM_MACADDR"]/s').text, :ip => (c/'a[@n="vm_ipaddr"]/s').text)
             ],
