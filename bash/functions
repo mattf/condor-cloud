@@ -94,7 +94,7 @@ function get_image {
    LOCK="$CACHE/$IMAGE.lock"
 
    if ! image_exists_global $IMAGE; then
-      ERROR_MSG="$IMAGE not found"
+      ERROR_MSG="$STORAGE/$IMAGE not found"
       return 1
    fi
 

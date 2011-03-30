@@ -79,6 +79,9 @@ module CondorCloud
       raise "HardwareProfile object must be not nil" unless hardware_profile
       opts[:name] ||= "i-#{Time.now.to_i}"
 
+      # This needs to be determined by the mac/ip translation stuff.
+      mac_addr = '52:54:00:ab:90:44'
+
       # I use the 2>&1 to get stderr and stdout together because popen3 does not support
       # the ability to get the exit value of the command in ruby 1.8.
       pipe = IO.popen("#{CONDOR_SUBMIT_CMD} 2>&1", "w+")
@@ -90,7 +93,9 @@ module CondorCloud
       pipe.puts "executable = #{image.description}"
       pipe.puts '+HookKeyword="CLOUD"'
       pipe.puts "+Cmd=\"#{opts[:name]}\""
-      pipe.puts "+VM_XML=\"<domain type='kvm'><name>{NAME}</name><memory>$((#{hardware_profile.memory} * 1024))</memory><vcpu>#{hardware_profile.cpus}</vcpu><os><type arch='i686' machine='pc-0.11'>hvm</type><boot dev='hd'/></os><features><acpi/><apic/><pae/></features><clock offset='utc'/><on_poweroff>destroy</on_poweroff><on_reboot>restart</on_reboot><on_crash>restart</on_crash><devices><emulator>/usr/bin/qemu-kvm</emulator><disk type='file' device='disk'><source file='{DISK}'/><target dev='hda' bus='ide'/><driver name='qemu' type='qcow2'/></disk><interface type='network'><source network='default'/><model type='e1000'/></interface><graphics type='vnc' port='5900' autoport='yes' keymap='en-us'/></devices></domain>\""
+      # Really the image should not be a full path to begin with I think..
+      pipe.puts "+cloud_image=\"#{File.basename(image.description)}\""
+      pipe.puts "+VM_XML=\"<domain type='kvm'><name>#{opts[:name]}</name><memory>#{hardware_profile.memory.to_i * 1024}</memory><vcpu>#{hardware_profile.cpus}</vcpu><os><type arch='x86_64' machine='pc-0.13'>hvm</type><boot dev='hd'/></os><features><acpi/><apic/><pae/></features><clock offset='utc'/><on_poweroff>destroy</on_poweroff><on_reboot>restart</on_reboot><on_crash>restart</on_crash><devices><emulator>/usr/bin/qemu-kvm</emulator><disk type='file' device='disk'><source file='{DISK}'/><target dev='vda' bus='virtio'/><driver name='qemu' type='qcow2'/></disk><interface type='bridge'><mac address='#{mac_addr}'/><source bridge='vnet0'/><alias name='net0'/></interface><graphics type='vnc' port='5900' autoport='yes' keymap='en-us'/></devices></domain>\""
       pipe.puts "queue"
       pipe.puts ""
       pipe.close_write
