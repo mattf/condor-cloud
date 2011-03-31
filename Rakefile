@@ -18,6 +18,7 @@
 
 require 'rake'
 require 'rake/testtask'
+require 'rake/rdoctask'
 
 task :default => [:test_units]
 
@@ -28,3 +29,8 @@ Rake::TestTask.new("test_units") { |t|
   t.warning = true
 }
 
+Rake::RDocTask.new do |rd|
+    rd.main = "README"
+    rd.rdoc_dir = "docs"
+    rd.rdoc_files.include("README", "deltacloud-condor-driver/**/*.rb")
+  end
