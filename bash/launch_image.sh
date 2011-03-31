@@ -1,6 +1,6 @@
 #!/bin/sh
 
-source /opt/condor-cloud/functions
+source /usr/libexec/condor/cloud_functions
 
 function usage() {
    echo "usage: $0 [-t <small|medium|large>] -i <image>"

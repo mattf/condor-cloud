@@ -1,6 +1,6 @@
 #!/bin/sh
 
-source /opt/condor-cloud/functions
+source /usr/libexec/condor/cloud_functions
 
 while read line; do
    name="${line%% =*}"

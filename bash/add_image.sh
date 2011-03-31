@@ -1,6 +1,6 @@
 #!/bin/sh
 
-source /opt/condor-cloud/functions
+source /usr/libexec/condor/cloud_functions
 
 put_image $1
 if [ $? -ne 0 ]; then
