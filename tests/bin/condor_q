@@ -15,7 +15,7 @@ cat <<EOF
     <a n="PublicClaimId"><s>&lt;172.31.0.3:52498&gt;#1300135185#12#...</s></a>
 
     <a n="Out"><s>/dev/null</s></a>
-    <a n="VMPARAM_Kvm_Disk"><s>/home/storage/vms/Fedora_Work_Machine-clone.img:sda:w</s></a>
+    <a n="VMPARAM_vm_Disk"><s>/home/storage/vms/Fedora_Work_Machine-clone.img:sda:w</s></a>
     <a n="ImageSize_RAW"><i>0</i></a>
     <a n="RemoteHost"><s>slot2@hank.mains.priv</s></a>
     <a n="NumCkpts_RAW"><i>0</i></a>
