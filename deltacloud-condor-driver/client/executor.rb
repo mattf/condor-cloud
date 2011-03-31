@@ -127,7 +127,7 @@ module CondorCloud
             <alias name='net0'/>
           </interface>
           #{user_data['devices']}
-          <graphics type='vnc' port='5900' autoport='yes' keymap='en-us' listen=''/>
+          <graphics type='vnc' port='5900' autoport='yes' keymap='en-us' listen='0.0.0.0'/>
         </devices>
       </domain>\"".gsub(/(\s{2,})/, ' ').gsub(/\>\s\</, '><')
 
