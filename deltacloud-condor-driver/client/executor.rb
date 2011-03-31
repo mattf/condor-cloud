@@ -84,6 +84,53 @@ module CondorCloud
       mac_addr = '00:1A:4A:22:20:01'
       ip_addr = '172.31.0.101'
 
+      # You can sent parts of XML used by libvirt using 'user_data' parameter
+      # on POST /api/instances
+      # This parameters must contain JSON structure like this:
+      #
+      # { 'os' : "<smbios mode='sysinfo'/><cmdline>console=ttyS0 ks=http://example.com/f8-i386/os/</cmdline>" }
+      #
+      # This XML will be included in '<os>' part of libvirt XML
+      #
+      user_data = {}
+      if opts[:user_data]
+        user_data = JSON::parse(opts[:user_data])
+      end
+      libvirt_xml = "+VM_XML=\"<domain type='kvm'>
+        <name>{NAME}</name>
+        <memory>#{hardware_profile.memory.to_i * 1024}</memory>
+        <vcpu>#{hardware_profile.cpus}</vcpu>
+        <os>
+          <type arch='x86_64' machine='pc-0.13'>hvm</type>
+          <boot dev='hd'/>#{user_data['os']}
+        </os>
+        <features>
+          <acpi/>
+          <apic/>
+          <pae/>
+          #{user_data['features']}
+        </features>
+        <clock offset='utc'/>
+        <on_poweroff>destroy</on_poweroff>
+        <on_reboot>restart</on_reboot>
+        <on_crash>restart</on_crash>
+        <devices>
+          <emulator>/usr/bin/qemu-kvm</emulator>
+          <disk type='file' device='disk'>
+            <source file='{DISK}'/>
+            <target dev='vda' bus='virtio'/>
+            <driver name='qemu' type='qcow2'/>
+          </disk>
+          <interface type='bridge'>
+            <mac address='#{mac_addr}'/>
+            <source bridge='vnet0'/>
+            <alias name='net0'/>
+          </interface>
+          #{user_data['devices']}
+          <graphics type='vnc' port='5900' autoport='yes' keymap='en-us' listen=''/>
+        </devices>
+      </domain>\"".gsub(/(\s{2,})/, ' ').gsub(/\>\s\</, '><')
+
       # I use the 2>&1 to get stderr and stdout together because popen3 does not support
       # the ability to get the exit value of the command in ruby 1.8.
       pipe = IO.popen("#{CONDOR_SUBMIT_CMD} 2>&1", "w+")
@@ -104,13 +151,16 @@ module CondorCloud
       pipe.puts "+Cmd=\"#{opts[:name]}\""
       # Really the image should not be a full path to begin with I think..
       pipe.puts "+cloud_image=\"#{File.basename(image.description)}\""
-      pipe.puts "+VM_XML=\"<domain type='kvm'><name>{NAME}</name><memory>#{hardware_profile.memory.to_i * 1024}</memory><vcpu>#{hardware_profile.cpus}</vcpu><os><type arch='x86_64' machine='pc-0.13'>hvm</type><boot dev='hd'/></os><features><acpi/><apic/><pae/></features><clock offset='utc'/><on_poweroff>destroy</on_poweroff><on_reboot>restart</on_reboot><on_crash>restart</on_crash><devices><emulator>/usr/bin/qemu-kvm</emulator><disk type='file' device='disk'><source file='{DISK}'/><target dev='vda' bus='virtio'/><driver name='qemu' type='qcow2'/></disk><interface type='bridge'><mac address='#{mac_addr}'/><source bridge='vnet0'/><alias name='net0'/></interface><graphics type='vnc' port='5900' autoport='yes' keymap='en-us' listen='0.0.0.0'/></devices></domain>\""
+      pipe.puts libvirt_xml
       pipe.puts "queue"
       pipe.puts ""
       pipe.close_write
       out = pipe.read
       pipe.close
-      raise ("Error starting VM in condor_submit: #{out}") if $? != 0
+
+      if $? != 0
+        raise "Error starting VM in condor_submit: #{out}"
+      end
 
       bare_xml = Nokogiri::XML(`#{CONDOR_Q_CMD} -xml`)
       parse_condor_q_output(bare_xml, :name => opts[:name])
@@ -167,7 +217,7 @@ module CondorCloud
             ],
             :instance_profile => HardwareProfile.new(:memory => (c/'a[@n="JobVMMemory"]/i').text, :cpus => (c/'a[@n="JobVM_VCPUS"]/i').text),
             :owner_id => (c/'a[@n="User"]/s').text,
-            :image => Image.new(:name => File::basename((c/'a[@n="VMPARAM_vm_Disk"]/s').text.split(':').first).downcase.tr('.', '-')),
+            :image => Image.new(:name => File::basename((c/'a[@n="VMPARAM_Kvm_Disk"]/s').text.split(':').first).downcase.tr('.', '-')),
             :realm => Realm.new(:id => (c/'a[@n="JobVMType"]/s').text)
           )
         rescue Exception => e

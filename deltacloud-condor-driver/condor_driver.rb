@@ -26,6 +26,8 @@ module Deltacloud
     module Condor
       class CondorDriver < Deltacloud::BaseDriver
 
+        feature :instances, :user_data
+
         def supported_collections
           DEFAULT_COLLECTIONS - [ :storage_volumes, :storage_snapshots ]
         end
@@ -100,7 +102,7 @@ module Deltacloud
           new_client(credentials) do |condor|
             image = condor.images(:id => image_id).first
             hardware_profile = condor.hardware_profiles(:id => opts[:hwp_id] || 'small')
-            instance = condor.launch_instance(image, hardware_profile, :name => opts[:name] || "i-#{Time.now.to_i}").first
+            instance = condor.launch_instance(image, hardware_profile, { :name => opts[:name] || "i-#{Time.now.to_i}", :user_data => opts[:user_data] }).first
             raise "Error: VM not launched" unless instance
             instance(credentials, :id => instance.id)
           end

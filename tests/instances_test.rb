@@ -47,9 +47,9 @@ class TestCondorInstances < Test::Unit::TestCase
       assert_equal('1300202231', c.instances.first.id)
       assert_equal('kvm_test2', c.instances.first.name)
       assert_instance_of(CondorCloud::HardwareProfile, c.instances.first.instance_profile)
-      assert_equal('PENDING', c.instances.first.state)
+      assert_equal('RUNNING', c.instances.first.state)
       assert_instance_of(CondorCloud::Address, c.instances.first.public_addresses.first)
-      assert_equal('192.168.1.7', c.instances.first.public_addresses.first.ip)
+      assert_equal('', c.instances.first.public_addresses.first.ip)
       assert_equal('52:54:00:ab:90:41', c.instances.first.public_addresses.first.mac)
     end
   end
@@ -76,8 +76,8 @@ class TestCondorInstances < Test::Unit::TestCase
       assert_instance_of(CondorCloud::Image, instance.first.image)
       assert_equal('7de6086a9e6ff76dd8bd37c9e770ab4f5cb4649a', instance.first.image.id)
       assert_equal('fedora_work_machine-clone-img', instance.first.image.name)
-      assert_equal('192.168.1.7', instance.first.public_addresses.first.ip)
-      assert_equal('PENDING', instance.first.state)
+      assert_equal('', instance.first.public_addresses.first.ip)
+      assert_equal('RUNNING', instance.first.state)
     end
   end
 
