@@ -1,0 +1,128 @@
+
+Condor Cloud
+~~~~~~~~~~~~
+
+Condor cloud is an attempt to produce a relatively simple cloud engine
+on top of condor.  We use the deltacloud API - 
+http://incubator.apache.org/deltacloud/ - as the driver of this cloud
+and the API presented to end users.
+
+It supports launching three types of stateless instances; small (512MB
+RAM, 1 CPU), medium (1GB RAM, 2 CPU), and large (2GB RAM, 4 CPU).
+
+All instances are stateless, meaning they are given a fresh disk on
+each launch.  This is achieved by creating a COW disk image at startup
+via a Condor hook and then throwing away the COW part when the instance
+is terminated.
+
+.... more to come.
+
+The Condor bash scripts consist of the following:
+
+cloud_functions -
+
+Set of utility functions used by the shell scripts below. It must be
+installed in /opt/condor-cloud so it can be source'd.
+
+cloud.config -
+
+Condor configuration for an execute node. Set this as
+LOCAL_CONFIG_FILE inside ~condor/condor_config.local, or drop it in a
+LOCAL_CONFIG_DIR. It does:
+
+ 1) Setup of the Virtual Machine (VM) Universe to accept KVM jobs, and
+    use a custom libvirt XML configuration script
+    (libvirt_cloud_script.sh)
+ 2) Enabling of a single partitionable slot for VM packing, with 4x
+    resources (over provisioning)
+ 3) Setup of a PREPARE job hook to retrieve the VM's base image and
+    produce a qcow2 image from it
+ 4) Setup of a STARTD_CRON (aka Hawkeye) script to advertise base
+    images already available on the execute node (cached_images.sh)
+
+cached_images.sh -
+
+A Hawkeye script to advertise images already available on the node in
+a CACHED_IMAGES attribute. Useful for RANK expressions so VMs prefer
+to run on nodes that already hold their base image.
+
+Install as $(condor_config_val STARTD_CRON_CACHED_IMAGES_EXECUTABLE)
+with permissions set to a=rx.
+
+libvirt_cloud_script.sh -
+
+The libvirt XML configuration script. It accepts a job ad on stdin and
+produces the XML to create a domain on stdout. The XML is provided by
+the job's VM_XML attribute, set from launch_image.sh. The VM_XML is
+processed to set the {NAME}, which is decided by the vm-gahp.
+
+Install as $(condor_config_val LIBVIRT_XML_SCRIPT) with permissions
+set to a=rx.
+
+cloud_prepare_hook.sh -
+
+The job hook PREPARE script. It accepts a job ad on stdin, creates the
+job's disk image (qcow2), downloading the base image if needed, and
+produces attributes updates to the job ad (one per line). It uses the
+Cmd (executable) attribute on the job ad as the name of the job's base
+image. It processes the job ad's VM_XML attribute and sets the {DISK}
+portion.
+
+Install as $(condor_config_val CLOUD_HOOK_PREPARE_JOB) with
+permissions set to a=rx.
+
+cloud_exit_hook.sh -
+
+The job hook EXIT script. It is invoked when the VM exits. It takes a
+job ad on stdin, finds the disk image, and removes it. It currently
+does not work because libvirtd changes ownership of the disk image to
+root.root when the VM exits, instead of back to condor.condor.
+
+Install as $(condor_config_val CLOUD_HOOK_JOB_EXIT) with permissions
+set to a=rx.
+
+
+ToDo:
+ o Report VNC console port into job ad, possibly with job hook STATUS
+   script, or PREPARE hook since it is invoked by the starter
+ o Expand to 64 and 32 bit images, currently 32 bit
+ o Properly label disk images to play nicely with SELinux policy
+ o Allow for watchdog processes within VMs
+ o Allow for fixed IPs - MAC allocator and DHCP server, or just static IP?
+ o Work out disk sizes and necessary storage in cache based on
+   possible number of concurrent instances
+ o Allow for stateful instances, possibly using concurrency limits
+ o Provide a security model for images
+ o Provide a QMF or dcloud interface
+ o Improve vm-gahp error reporting in Condor
+ o ...
+
+
+Setup br0:
+
+cat > /etc/sysconfig/network-scripts/ifcfg-br0 << EOF
+DEVICE=br0
+TYPE=Bridge
+BOOTPROTO=dhcp
+ONBOOT=yes
+DELAY=0
+EOF
+
+cat >> /etc/sysconfig/network-scripts/ifcfg-eth0 << EOF
+BRIDGE=br0
+EOF
+
+cat >> /etc/sysctl.conf << EOF
+
+# Disable iptables on bridged, primarily for br0
+net.bridge.bridge-nf-call-ip6tables = 0
+net.bridge.bridge-nf-call-iptables = 0
+net.bridge.bridge-nf-call-arptables = 0
+EOF
+
+sysctl -p /etc/sysctl.conf
+
+service network restart 
+
+service libvirtd reload
+
