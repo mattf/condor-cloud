@@ -30,7 +30,7 @@ Rake::TestTask.new("test_units") { |t|
 }
 
 Rake::RDocTask.new do |rd|
-    rd.main = "README"
+    rd.main = "DESIGN.txt"
     rd.rdoc_dir = "docs"
-    rd.rdoc_files.include("README", "deltacloud-condor-driver/**/*.rb")
+    rd.rdoc_files.include("INSTALL.txt", "DESIGN.txt",  "deltacloud-condor-driver/**/*.rb")
   end
