@@ -103,7 +103,7 @@ module CondorCloud
         <memory>#{hardware_profile.memory.to_i * 1024}</memory>
         <vcpu>#{hardware_profile.cpus}</vcpu>
         <os>
-          <type arch='x86_64' machine='pc-0.13'>hvm</type>
+          <type arch='x86_64'>hvm</type>
           <boot dev='hd'/>#{user_data['os']}
         </os>
         <features>
@@ -117,7 +117,6 @@ module CondorCloud
         <on_reboot>restart</on_reboot>
         <on_crash>restart</on_crash>
         <devices>
-          <emulator>/usr/bin/qemu-kvm</emulator>
           <disk type='file' device='disk'>
             <source file='{DISK}'/>
             <target dev='vda' bus='virtio'/>
@@ -125,8 +124,7 @@ module CondorCloud
           </disk>
           <interface type='bridge'>
             <mac address='#{mac_addr}'/>
-            <source bridge='vnet0'/>
-            <alias name='net0'/>
+            <source bridge='br0'/>
           </interface>
           #{user_data['devices']}
           <graphics type='vnc' port='5900' autoport='yes' keymap='en-us' listen='0.0.0.0'/>
