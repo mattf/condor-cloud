@@ -56,6 +56,8 @@ module CondorCloud
     #
     def images(opts={})
       Dir["#{IMAGE_STORAGE}/*"].collect do |file|
+        next unless File::file?(file)
+        next unless File::readable?(file)
         image = Image.new(
           :name => File::basename(file).downcase.tr('.', '-'),
           :owner => Etc.getpwuid(File.stat(file).uid).name,
