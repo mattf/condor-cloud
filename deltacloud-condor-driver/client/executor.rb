@@ -75,6 +75,19 @@ module CondorCloud
     # @hardware_profile - Expecting CondorCloud::HardwareProfile here
     #
     # @opts - You can specify additional parameters like :name here
+    #         You can set additional parameters for libvirt using :user_data
+    #         specified in JSON format.
+    #
+    #         Parameters are:
+    #
+    #         { 'bridge_dev' : 'br0' }
+    #         { 'smbios' : 'sysinfo' }
+    #         { 'vnc_port' : '5900' }
+    #         { 'vnc_ip' : '0.0.0.0' }
+    #         { 'features' : ['acpi', 'apic', 'pae'] }
+    #         { 'sysinfo' : { 'bios_vendor' : 'Lenovo', 'system_manufacturer' : 'Virt', 'system_vendor' : 'IBM' } }
+    #
+    #         Of course you can combine them as you want, like (:user_data => "{ 'bridge_dev' : 'br0', 'vnc_ip' : 127.0.0.1 }")
     #
     def launch_instance(image, hardware_profile, opts={})
       raise "Image object must be not nil" unless image 
@@ -88,15 +101,25 @@ module CondorCloud
 
       # You can sent parts of XML used by libvirt using 'user_data' parameter
       # on POST /api/instances
-      # This parameters must contain JSON structure like this:
-      #
-      # { 'os' : "<smbios mode='sysinfo'/><cmdline>console=ttyS0 ks=http://example.com/f8-i386/os/</cmdline>" }
-      #
-      # This XML will be included in '<os>' part of libvirt XML
       #
       user_data = {}
+      components = {}
       if opts[:user_data]
         user_data = JSON::parse(opts[:user_data])
+        components[:smbios] = "<smbios mode='#{user_data['smbios']}'/>" if user_data['smbios']
+        components[:bridge_dev] = user_data['bridge_dev'] || "br0"
+        components[:vnc_port] = user_data['vnc_port'] || '5900'
+        components[:vnc_ip] = user_data['vnc_ip'] || '0.0.0.0'
+        components[:features] = user_data['features'] ? user_data['features'].collect { |f| "<#{f}/>"}.join : '<acpi/><apic/><pae/>'
+        if user_data['sysinfo']
+          sysinfo_struct = ""
+          sysinfo_struct += "<bios><entry name='vendor'>#{user_data['sysinfo']['bios_vendor']}</entry></bios>" if user_data['sysinfo']['bios_vendor']
+          system_struct = ""
+          system_struct += "<entry name='manufacturer'>#{user_data['sysinfo']['system_manufacturer']}</entry>" if user_data['sysinfo']['system_manufacturer']
+          system_struct += "<entry name='vendor'>#{user_data['sysinfo']['system_vendor']}</entry>" if user_data['sysinfo']['system_vendor']
+          sysinfo_struct += "<system>#{system_struct}</system>" if system_struct!=''
+          components[:sysinfo] = "<sysinfo type='#{user_data['sysinfo']['type']}'>#{sysinfo_struct}</sysinfo>"
+        end
       end
       libvirt_xml = "+VM_XML=\"<domain type='kvm'>
         <name>{NAME}</name>
@@ -104,13 +127,11 @@ module CondorCloud
         <vcpu>#{hardware_profile.cpus}</vcpu>
         <os>
           <type arch='x86_64'>hvm</type>
-          <boot dev='hd'/>#{user_data['os']}
+          <boot dev='hd'/>
+          #{components[:smbios]}
         </os>
         <features>
-          <acpi/>
-          <apic/>
-          <pae/>
-          #{user_data['features']}
+          #{components[:features]}
         </features>
         <clock offset='utc'/>
         <on_poweroff>destroy</on_poweroff>
@@ -124,10 +145,9 @@ module CondorCloud
           </disk>
           <interface type='bridge'>
             <mac address='#{mac_addr}'/>
-            <source bridge='br0'/>
+            <source bridge='#{components[:bridge_dev]}'/>
           </interface>
-          #{user_data['devices']}
-          <graphics type='vnc' port='5900' autoport='yes' keymap='en-us' listen='0.0.0.0'/>
+          <graphics type='vnc' port='#{components[:vnc_port]}' autoport='yes' keymap='en-us' listen='#{components[:vnc_ip]}'/>
         </devices>
       </domain>\"".gsub(/(\s{2,})/, ' ').gsub(/\>\s\</, '><')
 
