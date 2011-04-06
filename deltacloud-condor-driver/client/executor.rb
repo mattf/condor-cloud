@@ -19,6 +19,7 @@ require 'pp'
 require 'nokogiri'
 require 'etc'
 require 'tempfile'
+require 'yaml'
 
 module CondorCloud
 
@@ -27,14 +28,33 @@ module CondorCloud
     CONDOR_Q_CMD = ENV['CONDOR_Q_CMD'] || "condor_q"
     CONDOR_RM_CMD = ENV['CONDOR_RM_CMD'] || "condor_rm"
     CONDOR_SUBMIT_CMD = ENV['CONDOR_SUBMIT_CMD'] || 'condor_submit'
+
+    # This directory needs to be readable for user running Deltacloud API
     IMAGE_STORAGE = ENV['IMAGE_STORAGE'] || '/home/cloud/images'
+    CONDOR_CONFIG = ENV['CONDOR_CONFIG'] || 'config/condor.yaml'
 
     attr_accessor :ip_agent
+    attr_reader :config
 
+    # You can use your own IP agent using :ip_agent option.
+    # IPAgent should have parent class set to 'IPAgent' and implement all
+    # methods from this class. You can pass options to ip_agent using
+    # :ip_agent_args hash.
+    #
     def initialize(opts={}, &block)
-      @ip_agent = opts[:ip_agent] || CondorCloud::DefaultIPAgent.new(opts[:ip_agent_args] || {})
+      load_config!
+      if opts[:ip_agent]
+        @ip_agent = opts[:ip_agent]
+      else
+        default_ip_agent = CondorCloud::const_get(@config[:default_ip_agent]) 
+        @ip_agent = default_ip_agent.new(opts[:ip_agent_args] || {})
+      end
       yield self if block_given?
       self
+    end
+
+    def load_config!
+      @config = YAML::load(File.open(CONDOR_CONFIG))
     end
 
     # List instances using ENV['CONDOR_Q_CMD'] command.
@@ -107,7 +127,7 @@ module CondorCloud
       if opts[:user_data]
         user_data = JSON::parse(opts[:user_data])
         components[:smbios] = "<smbios mode='#{user_data['smbios']}'/>" if user_data['smbios']
-        components[:bridge_dev] = user_data['bridge_dev'] || "br0"
+        components[:bridge_dev] = user_data['bridge_dev'] || @config[:default_bridge]
         components[:vnc_port] = user_data['vnc_port'] || '5900'
         components[:vnc_ip] = user_data['vnc_ip'] || '0.0.0.0'
         components[:features] = user_data['features'] ? user_data['features'].collect { |f| "<#{f}/>"}.join : '<acpi/><apic/><pae/>'

@@ -1,0 +1,3 @@
+--- 
+:default_bridge: br0
+:default_ip_agent: DefaultIPAgent
