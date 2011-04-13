@@ -119,28 +119,6 @@ module CondorCloud
       mac_addr = @ip_agent.find_free_mac
       ip_addr = @ip_agent.find_ip_by_mac(mac_addr) if mac_addr && !mac_addr.empty?
 
-      # You can sent parts of XML used by libvirt using 'user_data' parameter
-      # on POST /api/instances
-      #
-      user_data = {}
-      components = {}
-      if opts[:user_data]
-        user_data = JSON::parse(opts[:user_data])
-        components[:smbios] = "<smbios mode='#{user_data['smbios']}'/>" if user_data['smbios']
-        components[:bridge_dev] = user_data['bridge_dev'] || @config[:default_bridge]
-        components[:vnc_port] = user_data['vnc_port'] || '5900'
-        components[:vnc_ip] = user_data['vnc_ip'] || '0.0.0.0'
-        components[:features] = user_data['features'] ? user_data['features'].collect { |f| "<#{f}/>"}.join : '<acpi/><apic/><pae/>'
-        if user_data['sysinfo']
-          sysinfo_struct = ""
-          sysinfo_struct += "<bios><entry name='vendor'>#{user_data['sysinfo']['bios_vendor']}</entry></bios>" if user_data['sysinfo']['bios_vendor']
-          system_struct = ""
-          system_struct += "<entry name='manufacturer'>#{user_data['sysinfo']['system_manufacturer']}</entry>" if user_data['sysinfo']['system_manufacturer']
-          system_struct += "<entry name='vendor'>#{user_data['sysinfo']['system_vendor']}</entry>" if user_data['sysinfo']['system_vendor']
-          sysinfo_struct += "<system>#{system_struct}</system>" if system_struct!=''
-          components[:sysinfo] = "<sysinfo type='#{user_data['sysinfo']['type']}'>#{sysinfo_struct}</sysinfo>"
-        end
-      end
       libvirt_xml = "+VM_XML=\"<domain type='kvm'>
         <name>{NAME}</name>
         <memory>#{hardware_profile.memory.to_i * 1024}</memory>
@@ -148,10 +126,9 @@ module CondorCloud
         <os>
           <type arch='x86_64'>hvm</type>
           <boot dev='hd'/>
-          #{components[:smbios]}
         </os>
         <features>
-          #{components[:features]}
+          <acpi/><apic/><pae/>
         </features>
         <clock offset='utc'/>
         <on_poweroff>destroy</on_poweroff>
@@ -165,9 +142,9 @@ module CondorCloud
           </disk>
           <interface type='bridge'>
             #{"<mac address='" + mac_addr + "'/>" if mac_addr && !mac_addr.empty?}
-            <source bridge='#{components[:bridge_dev]}'/>
+            <source bridge='#{@config[:default_bridge]}'/>
           </interface>
-          <graphics type='vnc' port='#{components[:vnc_port]}' autoport='yes' keymap='en-us' listen='#{components[:vnc_ip]}'/>
+          <graphics type='vnc' port='#{@config[:vnc_listen_port]}' autoport='yes' keymap='en-us' listen='#{@config[:vnc_listen_ip]}'/>
         </devices>
       </domain>\"".gsub(/(\s{2,})/, ' ').gsub(/\>\s\</, '><')
 
