@@ -58,7 +58,7 @@ module CondorCloud
     end
 
     # List instances using ENV['CONDOR_Q_CMD'] command.
-    # Retrieve XML from this command and parse it uring Nokogiri. Then this XML
+    # Retrieve XML from this command and parse it using Nokogiri. Then this XML
     # is converted to CondorCloud::Instance class
     #
     # @opts - This Hash can be used for filtering instances using :id => 'instance_id'
@@ -116,8 +116,8 @@ module CondorCloud
 
       # This needs to be determined by the mac/ip translation stuff.
       # We need to call into it and have it return these variables, or at least the MAC if not the IP.
-      mac_addr = '00:1A:4A:22:20:01'
-      ip_addr = '172.31.0.101'
+      mac_addr = @ip_agent.find_free_mac
+      ip_addr = @ip_agent.find_ip_by_mac(mac_addr) if mac_addr && !mac_addr.empty?
 
       # You can sent parts of XML used by libvirt using 'user_data' parameter
       # on POST /api/instances
@@ -164,7 +164,7 @@ module CondorCloud
             <driver name='qemu' type='qcow2'/>
           </disk>
           <interface type='bridge'>
-            <mac address='#{mac_addr}'/>
+            #{"<mac address='" + mac_addr + "'/>" if mac_addr && !mac_addr.empty?}
             <source bridge='#{components[:bridge_dev]}'/>
           </interface>
           <graphics type='vnc' port='#{components[:vnc_port]}' autoport='yes' keymap='en-us' listen='#{components[:vnc_ip]}'/>

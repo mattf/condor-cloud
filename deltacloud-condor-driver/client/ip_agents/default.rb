@@ -25,6 +25,9 @@ module CondorCloud
 
     def find_mac_by_ip(ip); end
     def find_ip_by_mac(mac); end
+    def find_free_mac
+      return nil
+    end
 
     # This method must return an Array of 'Address' objects
     # [ Address.new, Address.new ]
@@ -42,6 +45,29 @@ module CondorCloud
       @mappings = Nokogiri::XML(File.open(opts[:file] || File.join('config', 'addresses.xml')))
     end
 
+    def find_free_mac
+      instances = DefaultExecutor.new.instances  # Or should this be a class method, or maybe a utility function?
+      addresses = (@mappings/'/addresses/address').collect { |a| Address.new(:ip => a.text.strip, :mac => a[:mac]) }
+
+      # Make an address hash to speed up the inner loop.
+      addr_hash = {}
+      addresses.each do |address|
+        addr_hash[address.mac] = address.ip
+      end
+
+      instances.each do |instance|
+        instance.public_addresses.each do |public_address|
+          if addr_hash.key?(public_address.mac)
+            addr_hash.delete(public_address.mac)
+          end
+        end
+      end
+      if addr_hash.empty?
+        raise "No available MACs to assign to instance."
+      end
+      return addr_hash.keys.first
+    end
+
     def find_ip_by_mac(mac)
       t = (@mappings/"/addresses/address[@mac='#{mac}']").text
       t.empty? ? nil : t
@@ -54,7 +80,5 @@ module CondorCloud
     def addresses
       (@mappings/'/addresses/address').collect { |a| Address.new(:ip => a.text.strip, :mac => a[:mac]) }
     end
-
   end
-
 end
