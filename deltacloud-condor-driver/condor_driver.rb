@@ -22,11 +22,20 @@ require 'deltacloud/drivers/condor/client/ip_agents/default'
 require 'deltacloud/drivers/condor/client/executor'
 
 module Deltacloud
+  
+  declare_feature :instances, :sandboxing do
+    description "Allow lanuching sandbox images"
+    operation :create do
+      param :sandbox, :string,  :libxml_data
+    end
+  end
+
   module Drivers
     module Condor
       class CondorDriver < Deltacloud::BaseDriver
 
         feature :instances, :user_data
+        feature :instances, :libxml_data
 
         def supported_collections
           DEFAULT_COLLECTIONS - [ :storage_volumes, :storage_snapshots ]
@@ -102,7 +111,11 @@ module Deltacloud
           new_client(credentials) do |condor|
             image = condor.images(:id => image_id).first
             hardware_profile = condor.hardware_profiles(:id => opts[:hwp_id] || 'small')
-            instance = condor.launch_instance(image, hardware_profile, { :name => opts[:name] || "i-#{Time.now.to_i}", :user_data => opts[:user_data] }).first
+            instance = condor.launch_instance(image, hardware_profile, { 
+              :name => opts[:name] || "i-#{Time.now.to_i}", 
+              :user_data => opts[:user_data],
+              :libxml => opts[:libxml_data]
+            }).first
             raise "Error: VM not launched" unless instance
             instance(credentials, :id => instance.id)
           end
@@ -132,6 +145,12 @@ module Deltacloud
           running.to( :running )        .on( :reboot )
           running.to( :shutting_down )  .on( :destroy )
           shutting_down.to( :finish )   .automatically
+        end
+
+        # TODO: Add real authentication here
+        #
+        def valid_credentials?(credentials)
+          return true
         end
 
         private
