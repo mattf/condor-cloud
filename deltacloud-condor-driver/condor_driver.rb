@@ -23,10 +23,10 @@ require 'deltacloud/drivers/condor/client/executor'
 
 module Deltacloud
   
-  declare_feature :instances, :sandboxing do
+  declare_feature :instances, :libxml_data do
     description "Allow lanuching sandbox images"
     operation :create do
-      param :sandbox, :string,  :libxml_data
+      param :libxml_data, :string, :optional
     end
   end
 
