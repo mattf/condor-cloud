@@ -46,25 +46,23 @@ module CondorCloud
     end
 
     def find_free_mac
-      instances = DefaultExecutor.new.instances  # Or should this be a class method, or maybe a utility function?
-      addresses = (@mappings/'/addresses/address').collect { |a| Address.new(:ip => a.text.strip, :mac => a[:mac]) }
+      DefaultExecutor::new do |executor|
+        addresses = (@mappings/'/addresses/address').collect { |a| Address.new(:ip => a.text.strip, :mac => a[:mac]) }
 
-      # Make an address hash to speed up the inner loop.
-      addr_hash = {}
-      addresses.each do |address|
-        addr_hash[address.mac] = address.ip
-      end
+        # Make an address hash to speed up the inner loop.
+        addr_hash = addresses.inject({}) { |address, r| r[address.mac] = address.ip; r }
 
-      instances.each do |instance|
-        instance.public_addresses.each do |public_address|
-          if addr_hash.key?(public_address.mac)
-            addr_hash.delete(public_address.mac)
+        executor.instances.each do |instance|
+          instance.public_addresses.each do |public_address|
+            if addr_hash.key?(public_address.mac)
+              addr_hash.delete(public_address.mac)
+            end
           end
         end
       end
-      if addr_hash.empty?
-        raise "No available MACs to assign to instance."
-      end
+
+      raise "No available MACs to assign to instance." if addr_hash.empty?
+
       return addr_hash.keys.first
     end
 
