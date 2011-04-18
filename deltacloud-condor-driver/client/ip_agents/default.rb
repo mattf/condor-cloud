@@ -50,7 +50,10 @@ module CondorCloud
         addresses = (@mappings/'/addresses/address').collect { |a| Address.new(:ip => a.text.strip, :mac => a[:mac]) }
 
         # Make an address hash to speed up the inner loop.
-        addr_hash = addresses.inject({}) { |address, r| r[address.mac] = address.ip; r }
+        addr_hash = {}
+        addresses.each do |address|
+          addr_hash[address.mac] = address.ip
+        end
 
         executor.instances.each do |instance|
           instance.public_addresses.each do |public_address|
