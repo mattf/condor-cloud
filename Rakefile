@@ -34,3 +34,27 @@ Rake::RDocTask.new do |rd|
     rd.rdoc_dir = "docs"
     rd.rdoc_files.include("INSTALL.txt", "DESIGN.txt",  "deltacloud-condor-driver/**/*.rb")
   end
+
+desc "Package this driver for Deltacloud API"
+task :package do
+  require 'yaml'
+  FileUtils.rm_rf('core', :verbose => true)
+  puts "git clone git://git.apache.org/deltacloud.git core"
+  `git clone git://git.apache.org/deltacloud.git core`
+  FileUtils.cp_r('deltacloud-condor-driver','core/server/lib/deltacloud/drivers/condor', :verbose => true)
+  FileUtils.cp('config/condor.yaml', 'core/server/config', :verbose => true)
+  FileUtils.cp('config/addresses.xml', 'core/server/config', :verbose => true)
+  config = YAML::load(open('core/server/config/drivers.yaml').read)
+  config[:condor] = {
+    :name => 'Condor'
+  }
+  File.open( 'config.yaml', 'w' ) do |out|
+    YAML.dump(config, out)
+  end
+  FileUtils.mv('config.yaml', 'core/server/config/drivers.yaml', { :force => true, :verbose => true })
+  FileUtils.cp('contrib/deltacloud-condor.gemspec', 'core/server/deltacloud-core.gemspec', { :verbose => true})
+  puts "cd core/server && rake package"
+  `cd core/server && rake package`
+  FileUtils.mv('core/server/pkg/deltacloud-condor-0.3.0.gem', '.')
+  FileUtils.rm_rf('core', :verbose => true)
+end
