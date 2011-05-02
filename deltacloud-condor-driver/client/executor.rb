@@ -119,6 +119,7 @@ module CondorCloud
       mac_addr = @ip_agent.find_free_mac
       ip_addr = @ip_agent.find_ip_by_mac(mac_addr) if mac_addr && !mac_addr.empty?
 
+
       libvirt_xml = "+VM_XML=\"<domain type='kvm'>
         <name>{NAME}</name>
         <memory>#{hardware_profile.memory.to_i * 1024}</memory>
@@ -127,6 +128,12 @@ module CondorCloud
           <type arch='x86_64'>hvm</type>
           <boot dev='hd'/>
         </os>
+        <sysinfo type='smbios'>
+          <system>
+            <entry name='manufacturer'>#{opts[:config_server_address]}</entry>
+            <entry name='vendor'>#{opts[:uuid]}</entry>
+          </system>
+        </sysinfo>
         <features>
           <acpi/><apic/><pae/>
         </features>
