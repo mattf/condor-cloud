@@ -92,14 +92,14 @@ module Deltacloud
           results = []
           new_client(credentials) do |condor|
             results = condor.instances.collect do |instance|
-              config = CondorDriver::query_config_server(get_uuid(instance.id))
+              config = Condor::query_config_server(get_uuid(instance.id))
               Instance::new(
                 :id => instance.id,
                 :name => instance.name,
                 :realm_id => 'default',
                 :instance_profile => InstanceProfile::new(instance.instance_profile.name),
                 :image_id => instance.image.id,
-                :public_addresses => [config[:ip_address]]
+                :public_addresses => [config[:ip_address]],
                 :owner_id => instance.owner_id,
                 :description => instance.name,
                 :architecture => 'x86_64',
@@ -121,8 +121,10 @@ module Deltacloud
           # $uuid          - UUID to use for instance (will be used for ConfServer <-> DC
           #                  API communication)
           #
-          user_data = opts[:user_data] ? Base64.decode64(opts[:user_data]) : ''
-          config_server_address, vm_uuid = opts[:user_data].strip.split(':')
+          user_data = opts[:user_data] ? Base64.decode64(opts[:user_data]) : nil
+          if user_data
+            config_server_address, vm_uuid = opts[:user_data].strip.split(':')
+          end
           vm_uuid ||= UUID::new.generate
           config_server_address ||= DEFAULT_CONFIG_SERVER_ADDRESS
           new_client(credentials) do |condor|
@@ -174,22 +176,34 @@ module Deltacloud
         private
 
         def new_client(credentials)
+          if ( credentials.user != 'condor' ) or ( credentials.password != 'deltacloud' )
+            raise Deltacloud::AuthException.new
+          end
           safely do
             yield CondorCloud::DefaultExecutor.new
           end
         end
 
         def store_uuid(uuid, id)
-          mapper = YAML::load(open(DEFAULT_CONFIG_SERVER_ADDRESS))
-          mapper[id] = uuid
-          File::open(DEFAULT_CONFIG_SERVER_ADDRESS, 'w') do |f|
+          begin
+            mapper = YAML::load(open(CONDOR_UUID_ID_MAPPING))
+            mapper[id] = uuid
+          rescue Errno::ENOENT
+            mapper = { id => uuid }
+          end
+          File::open(CONDOR_UUID_ID_MAPPING, 'w') do |f|
             f.puts YAML::dump(mapper)
           end
         end
 
         def get_uuid(id)
-          mapper = YAML::load(open(DEFAULT_CONFIG_SERVER_ADDRESS))
-          mapper[id]
+          begin
+            mapper = YAML::load(open(CONDOR_UUID_ID_MAPPING))
+            mapper[id]
+          rescue Errno::ENOENT
+            puts "WARNING: UUID->ID mapping file not found #{CONDOR_UUID_ID_MAPPING}"
+            return nil
+          end
         end
 
         def catched_exceptions_list

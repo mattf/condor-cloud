@@ -127,6 +127,7 @@ module CondorCloud
         <os>
           <type arch='x86_64'>hvm</type>
           <boot dev='hd'/>
+          <smbios mode='sysinfo'/>
         </os>
         <sysinfo type='smbios'>
           <system>

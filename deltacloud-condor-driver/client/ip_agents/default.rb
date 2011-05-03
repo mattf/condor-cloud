@@ -46,11 +46,11 @@ module CondorCloud
     end
 
     def find_free_mac
+      addr_hash = {}
       DefaultExecutor::new do |executor|
         addresses = (@mappings/'/addresses/address').collect { |a| Address.new(:ip => a.text.strip, :mac => a[:mac]) }
 
         # Make an address hash to speed up the inner loop.
-        addr_hash = {}
         addresses.each do |address|
           addr_hash[address.mac] = address.ip
         end
