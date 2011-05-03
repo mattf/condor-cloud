@@ -28,10 +28,16 @@ module Deltacloud
 
       require 'base64'
       require 'uuid'
+      require 'rest-client'
 
       def self.query_config_server(uuid)
-        # TODO: Query config server here
-        { :ip_address => '127.0.0.1'}
+        client = RestClient::Resource.new(CondorDriver::config_server_address)
+        begin
+          return { :ip_address => client["/ip/0.0.1/#{uuid}"].get.body }
+        rescue RestClient::ResourceNotFound
+          puts "[ConfServer]: Resource not found (/ip/0.0.1/#{uuid})"
+          return { :ip_address => '127.0.0.1' }
+        end
       end
 
       class CondorDriver < Deltacloud::BaseDriver
@@ -42,8 +48,12 @@ module Deltacloud
           DEFAULT_COLLECTIONS - [ :storage_volumes, :storage_snapshots ]
         end
 
-        DEFAULT_CONFIG_SERVER_ADDRESS = "127.0.0.1:5555"
-        CONDOR_UUID_ID_MAPPING = File::join(File::dirname(__FILE__), 'uuid_mapper.yaml')
+        def self.config_server_address
+          DEFAULT_CONFIG_SERVER_ADDRESS
+        end
+
+        DEFAULT_CONFIG_SERVER_ADDRESS = ENV['CONFIG_SERVER_ADDRESS'] || "10.34.32.181:4444"
+        CONDOR_UUID_ID_MAPPING = ENV['CONDOR_UUID_ID_MAPPING'] || File::join(File::dirname(__FILE__), 'uuid_mapper.yaml')
 
         def hardware_profiles(credentials, opts={})
           results = []
@@ -123,17 +133,19 @@ module Deltacloud
           #
           user_data = opts[:user_data] ? Base64.decode64(opts[:user_data]) : nil
           if user_data
-            config_server_address, vm_uuid = opts[:user_data].strip.split(':')
+            config_server_address, vm_uuid, vm_otp = opts[:user_data].strip.split(':')
           end
           vm_uuid ||= UUID::new.generate
           config_server_address ||= DEFAULT_CONFIG_SERVER_ADDRESS
+          vm_otp ||= vm_uuid[0..7]
           new_client(credentials) do |condor|
             image = condor.images(:id => image_id).first
             hardware_profile = condor.hardware_profiles(:id => opts[:hwp_id] || 'small')
             instance = condor.launch_instance(image, hardware_profile, { 
               :name => opts[:name] || "i-#{Time.now.to_i}", 
               :config_server_address => config_server_address,
-              :uuid => vm_uuid
+              :uuid => vm_uuid,
+              :otp => vm_otp,
             }).first
             store_uuid(vm_uuid, instance.id)
             raise "Error: VM not launched" unless instance

@@ -132,7 +132,8 @@ module CondorCloud
         <sysinfo type='smbios'>
           <system>
             <entry name='manufacturer'>#{opts[:config_server_address]}</entry>
-            <entry name='vendor'>#{opts[:uuid]}</entry>
+            <entry name='product'>#{opts[:uuid]}</entry>
+            <entry name='serial'>#{opts[:otp]}</entry>
           </system>
         </sysinfo>
         <features>
