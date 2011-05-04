@@ -41,6 +41,7 @@ module CondorCloud
     attr_accessor :public_addresses
     attr_accessor :instance_profile
     attr_accessor :owner_id
+    attr_accessor :launch_time
 
     def initialize(opts={})
       super(opts)
@@ -48,6 +49,7 @@ module CondorCloud
       @instance_profile, @realm = opts[:instance_profile], opts[:realm]
       @public_addresses = opts[:public_addresses]
       @owner_id = opts[:owner_id]
+      @launch_time = opts[:launch_time]
       self
     end
 

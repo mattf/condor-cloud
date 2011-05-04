@@ -20,6 +20,7 @@ require 'nokogiri'
 require 'etc'
 require 'tempfile'
 require 'yaml'
+require 'time'
 
 module CondorCloud
 
@@ -244,7 +245,8 @@ module CondorCloud
             :instance_profile => HardwareProfile.new(:memory => (c/'a[@n="JobVMMemory"]/i').text, :cpus => (c/'a[@n="JobVM_VCPUS"]/i').text),
             :owner_id => (c/'a[@n="User"]/s').text,
             :image => Image.new(:name => File::basename((c/'a[@n="VMPARAM_vm_Disk"]/s').text.split(':').first).downcase.tr('.', '-')),
-            :realm => Realm.new(:id => (c/'a[@n="JobVMType"]/s').text)
+            :realm => Realm.new(:id => (c/'a[@n="JobVMType"]/s').text),
+            :launch_time => Time.at((c/'a[@n="JobStartDate"]/i').text.to_i)
           )
         rescue Exception => e
           puts "Caught exception: #{e}"
