@@ -44,7 +44,7 @@ module Deltacloud
       def self.query_config_server(uuid)
         client = RestClient::Resource.new(CondorDriver::config_server_address)
         begin
-          return { :ip_address => client["/ip/0.0.1/#{uuid}"].get.body }
+          return { :ip_address => client["/ip/0.0.1/#{uuid}"].get(:accept => "text/plain").body }
         rescue RestClient::ResourceNotFound
           puts "Warning: IP address not found (/ip/0.0.1/#{uuid})"
           return { :ip_address => '127.0.0.1' }
