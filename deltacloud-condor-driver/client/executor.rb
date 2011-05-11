@@ -48,7 +48,7 @@ module CondorCloud
         @ip_agent = opts[:ip_agent]
       else
         default_ip_agent = CondorCloud::const_get(@config[:default_ip_agent]) 
-        @ip_agent = default_ip_agent.new(opts[:ip_agent_args] || {})
+        @ip_agent = default_ip_agent.new(:config => @config)
       end
       yield self if block_given?
       self

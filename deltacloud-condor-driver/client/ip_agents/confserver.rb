@@ -17,34 +17,33 @@
 # under the License.
 #
 
+require 'rest-client'
 require 'nokogiri'
 
 module CondorCloud
 
-  class IPAgent
+  class ConfServerIPAgent < IPAgent
 
-    attr_accessor :address
-
-    def find_mac_by_ip(ip); end
-    def find_ip_by_mac(mac); end
-    def find_free_mac
-      return nil
+    def initialize(opts={}) 
+      @config = opts[:config]
+      self.address = ENV['CONFIG_SERVER_ADDRESS'] || @config[:ip_agent_address] || "10.34.32.181:4444"
+      @version = @config[:ip_agent_version] || '0.0.1'
+      @client = RestClient::Resource::new(self.address)
+      # TODO: Manage MAC addresses through ConfServer
+      @mappings = Nokogiri::XML(File.open(opts[:file] || File.join('config', 'addresses.xml')))
     end
 
-    # This method must return an Array of 'Address' objects
-    # [ Address.new, Address.new ]
-    def addresses; end
-  end
+    def find_ip_by_mac(uuid)
+      begin
+        @client["/ip/%s/%s" % [@version, uuid]].get(:accept => 'text/plain').body.strip
+      rescue RestClient::ResourceNotFound
+        '127.0.0.1'
+      rescue
+        puts 'ERROR: Could not query ConfServer for an IP'
+      end
+    end
 
-
-  # Default IP agent will lookup addresses from XML
-  # files stored in config directory.
-  # You can overide default directory using { :file => 'path' }
-  #
-  class DefaultIPAgent < IPAgent
-    
-    def initialize(opts={})
-      @mappings = Nokogiri::XML(File.open(opts[:file] || File.join('config', 'addresses.xml')))
+    def find_mac_by_ip(ip)
     end
 
     def find_free_mac
@@ -71,17 +70,9 @@ module CondorCloud
       return addr_hash.keys.first
     end
 
-    def find_ip_by_mac(mac)
-      t = (@mappings/"/addresses/address[@mac='#{mac}']").text
-      t.empty? ? nil : t
-    end
-
-    def find_mac_by_ip(ip)
-      (@mappings/"/addresses/address[.='#{ip}']").first[:mac] rescue nil
-    end
-
     def addresses
       (@mappings/'/addresses/address').collect { |a| Address.new(:ip => a.text.strip, :mac => a[:mac]) }
     end
+
   end
 end

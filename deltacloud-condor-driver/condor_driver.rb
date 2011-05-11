@@ -19,6 +19,7 @@
 require 'deltacloud/base_driver'
 require 'deltacloud/drivers/condor/client/base_models'
 require 'deltacloud/drivers/condor/client/ip_agents/default'
+require 'deltacloud/drivers/condor/client/ip_agents/confserver'
 require 'deltacloud/drivers/condor/client/executor'
 
 class Instance
@@ -38,20 +39,7 @@ module Deltacloud
 
       require 'base64'
       require 'uuid'
-      require 'rest-client'
       require 'fileutils'
-
-      def self.query_config_server(uuid)
-        client = RestClient::Resource.new(CondorDriver::config_server_address)
-        begin
-          return { :ip_address => client["/ip/0.0.1/#{uuid}"].get(:accept => "text/plain").body }
-        rescue RestClient::ResourceNotFound
-          puts "Warning: IP address not found (/ip/0.0.1/#{uuid})"
-          return { :ip_address => '127.0.0.1' }
-        rescue
-          puts "ERROR: Could not contact ConfServer (#{CondorDriver::config_server_address})"
-        end
-      end
 
       class CondorDriver < Deltacloud::BaseDriver
 
@@ -62,11 +50,6 @@ module Deltacloud
           DEFAULT_COLLECTIONS - [ :storage_volumes, :storage_snapshots ]
         end
 
-        def self.config_server_address
-          DEFAULT_CONFIG_SERVER_ADDRESS
-        end
-
-        DEFAULT_CONFIG_SERVER_ADDRESS = ENV['CONFIG_SERVER_ADDRESS'] || "10.34.32.181:4444"
         CONDOR_MAPPER_DIR = ENV['CONDOR_MAPPER_DIR'] || File::join(File::dirname(__FILE__), 'mapper')
 
         def hardware_profiles(credentials, opts={})
@@ -116,15 +99,15 @@ module Deltacloud
           results = []
           new_client(credentials) do |condor|
             results = condor.instances.collect do |instance|
-              config = Condor::query_config_server(get_uuid(instance.id))
-              config ||= {}
+              vm_uuid = get_value(:uuid, instance.id)
+              ip_address = condor.ip_agent.find_ip_by_mac(vm_uuid)
               Instance::new(
                 :id => instance.id,
                 :name => instance.name,
                 :realm_id => 'default',
                 :instance_profile => InstanceProfile::new(instance.instance_profile.name),
                 :image_id => instance.image.id,
-                :public_addresses => [config[:ip_address]],
+                :public_addresses => [ ip_address ],
                 :owner_id => instance.owner_id,
                 :description => instance.name,
                 :architecture => 'x86_64',
@@ -155,9 +138,9 @@ module Deltacloud
             config_server_address, vm_uuid, vm_otp = opts[:user_data].strip.split(':')
           end
           vm_uuid ||= UUID::new.generate
-          config_server_address ||= DEFAULT_CONFIG_SERVER_ADDRESS
           vm_otp ||= vm_uuid[0..7]
           new_client(credentials) do |condor|
+            config_server_address ||= condor.ip_agent.address
             image = condor.images(:id => image_id).first
             hardware_profile = condor.hardware_profiles(:id => opts[:hwp_id] || 'small')
             instance = condor.launch_instance(image, hardware_profile, { 
@@ -166,7 +149,7 @@ module Deltacloud
               :uuid => vm_uuid,
               :otp => vm_otp,
             }).first
-            store_uuid(vm_uuid, instance.id)
+            store(:uuid, vm_uuid, instance.id)
             raise "Error: VM not launched" unless instance
             instance(credentials, { :id => instance.id, :password => vm_otp })
           end
@@ -176,7 +159,8 @@ module Deltacloud
           old_instance = instance(credentials, :id => instance_id)
           new_client(credentials) do |condor|
             condor.destroy_instance(instance_id)
-            remove_uuid(instance_id)
+            remove_key(:uuid, instance_id)
+            remove_key(:mac, instance_id)
           end
           old_instance.state = 'PENDING'
           old_instance.actions = instance_actions_for(old_instance.state),
@@ -210,28 +194,28 @@ module Deltacloud
           end
         end
 
-        # UUID <-> ID mapper
-        def store_uuid(uuid, id)
-          FileUtils.mkdir_p(CONDOR_MAPPER_DIR) unless File::directory?(CONDOR_MAPPER_DIR)
-          File.open(File.join(CONDOR_MAPPER_DIR, id), 'w') do |f|
-            f.puts(uuid)
+        def store(item, key, value)
+          FileUtils.mkdir_p(File.join(CONDOR_MAPPER_DIR, item.to_s)) unless File::directory?(CONDOR_MAPPER_DIR)
+          File.open(File.join(CONDOR_MAPPER_DIR, item.to_s, key), 'w') do |f|
+            f.puts(value)
           end
         end
 
-        def get_uuid(id)
+        def get_value(key, id)
           begin
-            File.open(File.join(CONDOR_MAPPER_DIR, id)).read.strip
+            File.open(File.join(CONDOR_MAPPER_DIR, key.to_s, id)).read.strip
           rescue Errno::ENOENT
-            puts "Warning: UUID not found for Instance #{id} (#{File.join(CONDOR_MAPPER_DIR, id)})"
+            puts "Warning: #{key} #{id} (#{File.join(CONDOR_MAPPER_DIR, key.to_s, id)})"
             nil
           end
         end
 
-        def remove_uuid(id)
+        def remove_key(key, id)
           begin
-            FileUtils::rm(File.join(CONDOR_MAPPER_DIR, id))
+            FileUtils::rm(File.join(CONDOR_MAPPER_DIR, key.to_s, id))
           rescue
-            puts "Warning: Cannot remove mapping for instance #{id} (#{File.join(CONDOR_MAPPER_DIR, id)})"
+            puts "Warning: Cannot remove #{key} mapping for instance #{id} (#{File.join(CONDOR_MAPPER_DIR, key.to_s, id)})"
+            nil
           end
         end
 

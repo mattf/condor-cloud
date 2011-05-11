@@ -1,5 +1,7 @@
 --- 
 :default_bridge: br0
-:default_ip_agent: DefaultIPAgent
+:default_ip_agent: ConfServerIPAgent
+:ip_agent_address: 'http://10.34.32.181:4444'
+:ip_agent_version: '0.0.1'
 :vnc_listen_port: '5900'
 :vnc_listen_ip: '0.0.0.0'
