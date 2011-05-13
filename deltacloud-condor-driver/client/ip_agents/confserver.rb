@@ -17,14 +17,15 @@
 # under the License.
 #
 
-require 'rest-client'
-require 'nokogiri'
 
 module CondorCloud
 
+  require 'nokogiri'
+  require 'rest-client'
+
   class ConfServerIPAgent < IPAgent
 
-    def initialize(opts={}) 
+    def initialize(opts={})
       @config = opts[:config]
       self.address = ENV['CONFIG_SERVER_ADDRESS'] || @config[:ip_agent_address] || "10.34.32.181:4444"
       @version = @config[:ip_agent_version] || '0.0.1'

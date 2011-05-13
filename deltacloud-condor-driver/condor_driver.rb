@@ -33,7 +33,7 @@ class Instance
 end
 
 module Deltacloud
-  
+
   module Drivers
     module Condor
 
@@ -135,7 +135,11 @@ module Deltacloud
           #
           user_data = opts[:user_data] ? Base64.decode64(opts[:user_data]) : nil
           if user_data
-            config_server_address, vm_uuid, vm_otp = opts[:user_data].strip.split(':')
+            config_server_address, vm_uuid, vm_otp = opts[:user_data].strip.split(';')
+            if vm_uuid.nil? and vm_otp.nil?
+              vm_uuid = config_server_address
+              config_server_address = nil
+            end
           end
           vm_uuid ||= UUID::new.generate
           vm_otp ||= vm_uuid[0..7]
