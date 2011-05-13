@@ -41,6 +41,8 @@ task :package do
   FileUtils.rm_rf('core', :verbose => true)
   puts "git clone git://git.apache.org/deltacloud.git core"
   `git clone git://git.apache.org/deltacloud.git core`
+  puts "Applying contributed patches on DC API..."
+  `cd core; git am ../contrib/0001-Added-user-data-field-to-new-instance-screen.patch; cd -`
   FileUtils.cp_r('deltacloud-condor-driver','core/server/lib/deltacloud/drivers/condor', :verbose => true)
   FileUtils.cp('config/condor.yaml', 'core/server/config', :verbose => true)
   FileUtils.cp('config/addresses.xml', 'core/server/config', :verbose => true)
@@ -53,8 +55,21 @@ task :package do
   end
   FileUtils.mv('config.yaml', 'core/server/config/drivers.yaml', { :force => true, :verbose => true })
   FileUtils.cp('contrib/deltacloud-condor.gemspec', 'core/server/deltacloud-core.gemspec', { :verbose => true})
+  FileUtils.cp('contrib/rpm/deltacloud-condor', 'core/server/support/fedora/deltacloud-condor', { :verbose => true})
+  FileUtils.cp('contrib/rpm/deltacloudd-condor', 'core/server/bin/deltacloudd-condor', { :verbose => true})
+  FileUtils.rm_rf('core/server/bin/deltacloudd', :verbose => true)
   puts "cd core/server && rake package"
   `cd core/server && rake package`
-  FileUtils.mv('core/server/pkg/deltacloud-condor-0.3.0.gem', '.')
+  FileUtils.mv('core/server/pkg/deltacloud-condor-0.3.0.gem', './contrib/rpm')
   FileUtils.rm_rf('core', :verbose => true)
+end
+
+desc "Make RPM package for Deltacloud Condor"
+task :rpm do
+  Dir.chdir("contrib/rpm")
+  unless File.exists?("deltacloud-condor-0.3.0.gem")
+    puts "ERROR: You must run 'rake package' first to build an gem"
+  else
+    `./rpm-local.sh`
+  end
 end

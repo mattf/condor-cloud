@@ -1,0 +1,78 @@
+#!/bin/bash
+#
+#
+# deltacloud-condor  startup script for deltacloud-condor server
+#
+# chkconfig: - 97 03
+# description: deltacloud-condor is primary server process for the \
+#    Deltacloud Core component with Condor Driver enabled.
+#
+
+[ -r /etc/sysconfig/deltacloud-condor ] && . /etc/sysconfig/deltacloud-condor
+
+ENV="${ENV:-production}"
+DRIVER="${DRIVER:-condor}"
+PORT="${PORT:-3003}"
+LOCKFILE="${LOCKFILE:-/var/lock/subsys/deltacloud-condor }"
+LOGFILE="${LOGFILE:-/var/log/deltacloud-condor/$DRIVER.log}"
+
+[ ! -d /var/log/deltacloud-condor ] && mkdir -p /var/log/deltacloud-condor
+
+PROG=/usr/bin/deltacloudd-condor
+
+. /etc/init.d/functions
+
+start() {
+    echo -n "Starting deltacloud-core: "
+
+    $PROG -i $DRIVER -e $ENV -p $PORT >> $LOGFILE 2>&1 &
+    RETVAL=$?
+    if [ $RETVAL -eq 0 ] && touch $LOCKFILE ; then
+      echo_success
+      echo
+    else
+      echo_failure
+      echo
+    fi
+}
+
+stop() {
+    echo -n "Shutting down deltacloud-core: "
+    RETVAL=$?
+    killall deltacloudd-condor
+    if [ $RETVAL -eq 0 ] && rm -f $LOCKFILE ; then
+      echo_success
+      echo
+    else
+      echo_failure
+      echo
+    fi
+}
+
+case "$1" in
+    start)
+      start
+      ;;
+    stop)
+      stop
+      ;;
+    restart)
+      stop
+      start
+      ;;
+    reload)
+      ;;
+    force-reload)
+      restart
+      ;;
+    status)
+      status $PROG
+      RETVAL=$?
+      ;;
+    *)
+      echo "Usage: deltacloud-core {start|stop|restart|status}"
+      exit 1
+  ;;
+esac
+
+exit $RETVAL

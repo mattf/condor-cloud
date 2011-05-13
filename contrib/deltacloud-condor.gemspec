@@ -48,11 +48,11 @@ Gem::Specification.new do |s|
     'public/images/*.png',
     'public/javascripts/*.js',
     'public/stylesheets/compiled/*.css',
-    'bin/deltacloudd'
+    'bin/deltacloudd-condor'
   ].to_a
 
   s.bindir = 'bin'
-  s.executables = 'deltacloudd'
+  s.executables = 'deltacloudd-condor'
   s.test_files= Dir.glob("tests/*_test.rb")
   s.extra_rdoc_files = Dir["LICENSE", "DISCLAIMER", "NOTICE"]
   s.required_ruby_version = '>= 1.8.1'
