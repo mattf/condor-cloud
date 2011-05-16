@@ -10,9 +10,11 @@
 
 [ -r /etc/sysconfig/deltacloud-condor ] && . /etc/sysconfig/deltacloud-condor
 
+HOSTNAME=$(hostname)
+HOST=${HOST:-$HOSTNAME}
 ENV="${ENV:-production}"
 DRIVER="${DRIVER:-condor}"
-PORT="${PORT:-3003}"
+PORT="${PORT:-3005}"
 LOCKFILE="${LOCKFILE:-/var/lock/subsys/deltacloud-condor }"
 LOGFILE="${LOGFILE:-/var/log/deltacloud-condor/$DRIVER.log}"
 
@@ -23,9 +25,9 @@ PROG=/usr/bin/deltacloudd-condor
 . /etc/init.d/functions
 
 start() {
-    echo -n "Starting deltacloud-core: "
+    echo -n "Starting deltacloud-condor ($HOST:$PORT): "
 
-    $PROG -i $DRIVER -e $ENV -p $PORT >> $LOGFILE 2>&1 &
+    $PROG -i $DRIVER -e $ENV -p $PORT -r $HOST >> $LOGFILE 2>&1 &
     RETVAL=$?
     if [ $RETVAL -eq 0 ] && touch $LOCKFILE ; then
       echo_success
@@ -37,7 +39,7 @@ start() {
 }
 
 stop() {
-    echo -n "Shutting down deltacloud-core: "
+    echo -n "Shutting down deltacloud-condor ($HOST:$PORT): "
     RETVAL=$?
     killall deltacloudd-condor
     if [ $RETVAL -eq 0 ] && rm -f $LOCKFILE ; then

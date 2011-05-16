@@ -3,7 +3,7 @@
 Summary: Deltacloud REST API for Condor Cloud
 Name: deltacloud-condor
 Version: 0.3.0
-Release: 1%{?dist}
+Release: 2%{?dist}
 Group: Development/Languages
 License: ASL 2.0 and MIT
 URL: http://incubator.apache.org/deltacloud
@@ -20,6 +20,7 @@ Requires: rubygem(net-ssh)
 Requires: rubygem(json)
 Requires: rubygem(rack-accept)
 Requires: rubygem(nokogiri)
+Requires: rubygem(uuid)
 Requires: rubygem(rest-client)
 Requires(post):   chkconfig
 Requires(preun):  chkconfig
@@ -110,6 +111,11 @@ fi
 %{app_root}/Rakefile
 
 %changelog
+* Mon May 16 2011 Michal Fojtik <mfojtik@redhat.com> - 0.3.0-2
+- Fixed uuid dependency
+- Fixed wrong deltacloudd-condor file
+- Added HOST option for initializer script
+
 * Fri Apr 29 2011 Michal Fojtik <mfojtik@redhat.com> - 0.3.0-1
 - Initial import of Deltacloud Condor
 

@@ -2,4 +2,4 @@
 
 root_path = File.join('/', 'usr', 'share', 'deltacloud-condor')
 $:.unshift File.join(root_path, 'lib')
-load File.join(root_path, 'bin', 'deltacloudd')
+load File.join(root_path, 'bin', 'deltacloudd-condor')

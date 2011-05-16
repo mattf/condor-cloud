@@ -56,8 +56,7 @@ task :package do
   FileUtils.mv('config.yaml', 'core/server/config/drivers.yaml', { :force => true, :verbose => true })
   FileUtils.cp('contrib/deltacloud-condor.gemspec', 'core/server/deltacloud-core.gemspec', { :verbose => true})
   FileUtils.cp('contrib/rpm/deltacloud-condor', 'core/server/support/fedora/deltacloud-condor', { :verbose => true})
-  FileUtils.cp('contrib/rpm/deltacloudd-condor', 'core/server/bin/deltacloudd-condor', { :verbose => true})
-  FileUtils.rm_rf('core/server/bin/deltacloudd', :verbose => true)
+  FileUtils.mv('core/server/bin/deltacloudd', 'core/server/bin/deltacloudd-condor', :verbose => true)
   puts "cd core/server && rake package"
   `cd core/server && rake package`
   FileUtils.mv('core/server/pkg/deltacloud-condor-0.3.0.gem', './contrib/rpm')
