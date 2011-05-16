@@ -65,6 +65,19 @@ Installation:
 4. Copy config/addresses.xml into core/server/config/
 5. Start Deltacloud API using: ./bin/deltacloudd -i condor
 
+Alternative installation (RPM)
+
+1. wget http://mifo.sk/fedora/condor/deltacloud-condor-0.3.0-2.el6.noarch.rpm
+2. rpm -i deltacloud-condor-0.3.0-2.el6.noarch.rpm
+3. Edit /etc/sysconfig/deltacloud-condor and write an HOST or IP address and PORT here:
+
+/etc/sysconfig/deltacloud-condor:
+HOST=10.0.0.1
+PORT=3005
+
+4. Restart deltacloud-condor server using 'service deltacloud-condor restart'
+
+
 Testing && Developing:
 
 Test::Unit files are located in 'test' directory, but to execute them you need to do
