@@ -17,17 +17,22 @@ DRIVER="${DRIVER:-condor}"
 PORT="${PORT:-3005}"
 LOCKFILE="${LOCKFILE:-/var/lock/subsys/deltacloud-condor }"
 LOGFILE="${LOGFILE:-/var/log/deltacloud-condor/$DRIVER.log}"
+export CONDOR_MAPPER_DIR="${CONDOR_MAPPER_DIR:-/var/tmp/condor-cloud}"
 
 [ ! -d /var/log/deltacloud-condor ] && mkdir -p /var/log/deltacloud-condor
+chown -R $CONDOR_USER /var/log/deltacloud-condor
 
-PROG=/usr/bin/deltacloudd-condor
+exec=/usr/bin/deltacloudd-condor
+prog=deltacloudd-condor
+logfile="${LOGFILE:-/var/log/deltacloud-condor/$DRIVER.log}"
+lockfile="${LOCKFILE:-/var/lock/subsys/deltacloud-condor}"
+options="-i ${DRIVER} -e ${ENV} -p ${PORT} -r ${HOST}"
 
 . /etc/init.d/functions
 
 start() {
     echo -n "Starting deltacloud-condor ($HOST:$PORT): "
-
-    $PROG -i $DRIVER -e $ENV -p $PORT -r $HOST >> $LOGFILE 2>&1 &
+    daemon --user $CONDOR_USER "$exec $options >> $logfile 2>&1 &"
     RETVAL=$?
     if [ $RETVAL -eq 0 ] && touch $LOCKFILE ; then
       echo_success
@@ -41,7 +46,7 @@ start() {
 stop() {
     echo -n "Shutting down deltacloud-condor ($HOST:$PORT): "
     RETVAL=$?
-    killall deltacloudd-condor
+    killproc $prog
     if [ $RETVAL -eq 0 ] && rm -f $LOCKFILE ; then
       echo_success
       echo
@@ -50,6 +55,7 @@ stop() {
       echo
     fi
 }
+
 
 case "$1" in
     start)
