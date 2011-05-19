@@ -187,6 +187,15 @@ module Deltacloud
           return true
         end
 
+        exceptions do
+          on /AuthException/ do
+            status 401
+          end
+          on /ERROR/ do
+            status 502
+          end
+        end
+
         private
 
         def new_client(credentials)
@@ -221,14 +230,6 @@ module Deltacloud
             puts "Warning: Cannot remove #{key} mapping for instance #{id} (#{File.join(CONDOR_MAPPER_DIR, key.to_s, id)})"
             nil
           end
-        end
-
-        def catched_exceptions_list
-          {
-            :auth => [],
-            :error => [ RuntimeError ],
-            :glob => []
-          }
         end
 
       end
