@@ -1,5 +1,5 @@
 ---
-:default_bridge: br0
+:default_bridge: virbr0
 :default_ip_agent: ConfServerIPAgent
 :ip_agent_address: '10.34.32.181:4444'
 :ip_agent_version: '0.0.1'
