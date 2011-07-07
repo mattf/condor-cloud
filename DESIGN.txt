@@ -85,15 +85,11 @@ set to a=rx.
 ToDo:
  o Report VNC console port into job ad, possibly with job hook STATUS
    script, or PREPARE hook since it is invoked by the starter
- o Expand to 64 and 32 bit images, currently 32 bit
  o Properly label disk images to play nicely with SELinux policy
- o Allow for watchdog processes within VMs
- o Allow for fixed IPs - MAC allocator and DHCP server, or just static IP?
  o Work out disk sizes and necessary storage in cache based on
    possible number of concurrent instances
  o Allow for stateful instances, possibly using concurrency limits
  o Provide a security model for images
- o Provide a QMF or dcloud interface
  o Improve vm-gahp error reporting in Condor
  o ...
 
