@@ -246,7 +246,7 @@ module CondorCloud
             :launch_time => Time.at((c/'a[@n="JobStartDate"]/i').text.to_i)
           )
         rescue Exception => e
-          puts "Caught exception: #{e}"
+          puts "Caught exception (may be safe to ignore if other jobs present): #{e}"
           puts e.message
           puts e.backtrace
           # Be nice to log something here in case we start getting silent failures.
