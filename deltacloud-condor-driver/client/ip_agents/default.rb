@@ -39,7 +39,7 @@ module CondorCloud
   # You can overide default directory using { :file => 'path' }
   #
   class DefaultIPAgent < IPAgent
-    
+
     def initialize(opts={})
       @mappings = Nokogiri::XML(File.open(opts[:file] || File.join('config', 'addresses.xml')))
     end

@@ -44,7 +44,7 @@ module CondorCloud
       if opts[:ip_agent]
         @ip_agent = opts[:ip_agent]
       else
-        default_ip_agent = CondorCloud::const_get(@config[:default_ip_agent]) 
+        default_ip_agent = CondorCloud::const_get(@config[:default_ip_agent])
         @ip_agent = default_ip_agent.new(:config => @config)
       end
       yield self if block_given?
@@ -80,7 +80,7 @@ module CondorCloud
           :name => File::basename(file).downcase.tr('.', '-'),
           :owner => Etc.getpwuid(File.stat(file).uid).name,
           :description => file
-        ) 
+        )
         next if opts[:id] and opts[:id]!=image.id
         image
       end.compact
@@ -88,7 +88,7 @@ module CondorCloud
 
     # Launch a new instance in Condor cloud using ENV['CONDOR_SUBMIT_CMD'].
     # Return CondorCloud::Instance.
-    # 
+    #
     # @image  - Expecting CondorCloud::Image here
     # @hardware_profile - Expecting CondorCloud::HardwareProfile here
     #
@@ -108,7 +108,7 @@ module CondorCloud
     #         Of course you can combine them as you want, like (:user_data => "{ 'bridge_dev' : 'br0', 'vnc_ip' : 127.0.0.1 }")
     #
     def launch_instance(image, hardware_profile, opts={})
-      raise "Image object must be not nil" unless image 
+      raise "Image object must be not nil" unless image
       raise "HardwareProfile object must be not nil" unless hardware_profile
       opts[:name] ||= "i-#{Time.now.to_i}"
 

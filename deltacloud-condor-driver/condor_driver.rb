@@ -145,8 +145,8 @@ module Deltacloud
             config_server_address ||= condor.ip_agent.address
             image = condor.images(:id => image_id).first
             hardware_profile = condor.hardware_profiles(:id => opts[:hwp_id] || 'small')
-            instance = condor.launch_instance(image, hardware_profile, { 
-              :name => opts[:name] || "i-#{Time.now.to_i}", 
+            instance = condor.launch_instance(image, hardware_profile, {
+              :name => opts[:name] || "i-#{Time.now.to_i}",
               :config_server_address => config_server_address,
               :uuid => vm_uuid,
               :otp => vm_otp,
@@ -230,7 +230,6 @@ module Deltacloud
             nil
           end
         end
-
       end
     end
   end

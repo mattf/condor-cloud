@@ -22,7 +22,7 @@ module CondorCloud
 
     attr_accessor :id
     attr_accessor :name
-    
+
     def initialize(opts)
       @id, @name = opts[:id], opts[:name]
       @name ||= @id
@@ -31,7 +31,7 @@ module CondorCloud
   end
 
   class Instance < Base
-    
+
     attr_accessor :state
     attr_accessor :image
     attr_accessor :realm
@@ -93,7 +93,7 @@ module CondorCloud
   end
 
   class HardwareProfile < Base
-    
+
     attr_accessor :memory
     attr_accessor :cpus
     attr_accessor :name
