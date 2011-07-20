@@ -29,7 +29,6 @@ module CondorCloud
     CONDOR_SUBMIT_CMD = ENV['CONDOR_SUBMIT_CMD'] || 'condor_submit'
 
     # This directory needs to be readable for user running Deltacloud API
-    IMAGE_STORAGE = ENV['IMAGE_STORAGE'] || '/home/cloud/images'
     CONDOR_CONFIG = ENV['CONDOR_CONFIG'] || 'config/condor.yaml'
 
     attr_accessor :ip_agent
@@ -74,7 +73,7 @@ module CondorCloud
     # name'
     #
     def images(opts={})
-      Dir["#{IMAGE_STORAGE}/*"].collect do |file|
+      Dir["#{@config[:image_storage]}/*"].collect do |file|
         next unless File::file?(file)
         next unless File::readable?(file)
         image = Image.new(

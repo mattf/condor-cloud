@@ -48,7 +48,7 @@ module Deltacloud
           DEFAULT_COLLECTIONS - [ :storage_volumes, :storage_snapshots ]
         end
 
-        CONDOR_MAPPER_DIR = ENV['CONDOR_MAPPER_DIR'] || File::join(File::dirname(__FILE__), 'mapper')
+        CONDOR_MAPPER_DIR = ENV['CONDOR_MAPPER_DIR'] || '/var/tmp')
 
         def hardware_profiles(credentials, opts={})
           results = []
@@ -179,7 +179,7 @@ module Deltacloud
         end
 
         def valid_credentials?(credentials)
-          if ( credentials.user != 'condor' ) or ( credentials.password != 'deltacloud' )
+          if ( credentials.user != @config[:username] ) or ( credentials.password != @config[:password] )
             return false
           end
           return true
