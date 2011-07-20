@@ -1,0 +1,93 @@
+Condor Cloud
+~~~~~~~~~~~~
+
+This document explains how to go about setting up the condor cloud.
+The condor cloud uses the deltacloud driver as the API to implement a private cloud system.
+
+The first step is to get the right version of condor.  At this time
+this is the upstream 7.6 version, which is also available in the Aeolus
+testing repo.  To install the repo use one of these:
+
+http://repos.fedorapeople.org/repos/aeolus/packages-testing/fedora-aeolus-testing.repo
+http://repos.fedorapeople.org/repos/aeolus/packages-testing/rhel-aeolus-testing.repo
+
+and put it in /etc/yum.repos.d/
+
+Then simply:
+
+  sudo yum install condor-vm-gahp
+
+Copy the condor_config.local to /var/lib/condor/condor_config.local:
+
+  sudo cp config/condor_config.local /var/lib/condor/condor_config.local
+
+Copy the support scripts to /usr/libexec/condor:
+
+  sudo cp bash/* /usr/libexec/condor/
+
+Restart the condor service to pick up the new config:
+
+  sudo service condor restart
+
+Condor is now started and is ready to be used by the deltacloud API.  One thing left 
+is to create the directory structure for images.  This is done with:
+
+sudo mkdir /home/cloud/
+sudo mkdir /home/cloud/images
+sudo mkdir /home/cloud/images/staging
+sudo mkdir /home/cloud/cache
+
+I personally chown'd those all to my user account so that I could access them freely.
+In the future this will be its own account (and you could certainly just adduser cloud
+if you felt like it), but for now this will work.
+
+You must also get a valid image or 3 into /home/cloud/images.  This should be a plain
+KVM formatted image.
+
+Condor Cloud Deltacloud API driver
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Requirements:
+
+* Condor installed using steps from 'Condor Cloud' section above
+* Commands in shell path: condor_q, condor_submit and condor_rm
+* VM images in /home/cloud/images directory
+
+Installation:
+
+1. git clone git://git.apache.org/deltacloud.git core
+2. Copy deltacloud-condor-driver/* into core/server/lib/deltacloud/drivers/condor
+3. Edit core/server/config/drivers.yaml and add following lines to enable Condor driver:
+
+:condor:
+  :name: Condor
+
+4. Copy config/addresses.xml into core/server/config/
+5. Start Deltacloud API using: ./bin/deltacloudd -i condor
+
+Alternative installation (RPM)
+
+1. wget http://mifo.sk/fedora/condor/deltacloud-condor-0.3.0-2.el6.noarch.rpm
+2. rpm -i deltacloud-condor-0.3.0-2.el6.noarch.rpm
+3. Edit /etc/sysconfig/deltacloud-condor and write an HOST or IP address and PORT here:
+
+/etc/sysconfig/deltacloud-condor:
+HOST=10.0.0.1
+PORT=3005
+
+4. Restart deltacloud-condor server using 'service deltacloud-condor restart'
+
+
+Testing && Developing:
+
+Test::Unit files are located in 'test' directory, but to execute them you need to do
+some modifications in executor.rb. First you need to change a path for base_model, because
+it's set to Deltacloud API default dir.
+Then you can execute test suite using: 'rake test'
+
+Using:
+
+You can now navigate to localhost:3001 (default) and if you have an image in
+/home/cloud/images you will be able to launch that image.
+
+
