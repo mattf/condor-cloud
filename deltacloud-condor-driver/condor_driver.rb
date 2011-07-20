@@ -48,7 +48,7 @@ module Deltacloud
           DEFAULT_COLLECTIONS - [ :storage_volumes, :storage_snapshots ]
         end
 
-        CONDOR_MAPPER_DIR = ENV['CONDOR_MAPPER_DIR'] || '/var/tmp')
+        CONDOR_MAPPER_DIR = ENV['CONDOR_MAPPER_DIR'] || '/var/tmp'
 
         def hardware_profiles(credentials, opts={})
           results = []
@@ -206,7 +206,7 @@ module Deltacloud
         end
 
         def store(item, key, value)
-          FileUtils.mkdir_p(File.join(CONDOR_MAPPER_DIR, item.to_s)) unless File::directory?(CONDOR_MAPPER_DIR)
+          FileUtils.mkdir_p(File.join(CONDOR_MAPPER_DIR, item.to_s))
           File.open(File.join(CONDOR_MAPPER_DIR, item.to_s, key), 'w') do |f|
             f.puts(value)
           end
@@ -216,7 +216,7 @@ module Deltacloud
           begin
             File.open(File.join(CONDOR_MAPPER_DIR, key.to_s, id)).read.strip
           rescue Errno::ENOENT
-            puts "Warning: #{key} #{id} (#{File.join(CONDOR_MAPPER_DIR, key.to_s, id)})"
+            puts "Warning: Could not find entry for #{key} #{id} (#{File.join(CONDOR_MAPPER_DIR, key.to_s, id)})"
             nil
           end
         end
@@ -225,6 +225,7 @@ module Deltacloud
           begin
             FileUtils::rm(File.join(CONDOR_MAPPER_DIR, key.to_s, id))
           rescue
+            # We should probably check for specific error conditions here.  Some we will want to log or throw an error for.
             puts "Warning: Cannot remove #{key} mapping for instance #{id} (#{File.join(CONDOR_MAPPER_DIR, key.to_s, id)})"
             nil
           end
