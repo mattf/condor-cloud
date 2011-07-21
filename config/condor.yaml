@@ -11,7 +11,7 @@
 # accross all nodes so that they all have access to the images.
 #
 # *** If you change this check /usr/libexec/condor/cloud_functions ***
-:image_storage: /home/cloud/images
+:image_storage: /var/lib/condor-cloud/shared_images
 
 # There are currently 2 ways to configure the IP addresses of instances,
 # one is to use the ip server agent in each image, the other is a simple
