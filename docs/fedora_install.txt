@@ -2,7 +2,86 @@ Condor Cloud
 ~~~~~~~~~~~~
 
 This document explains how to go about setting up the condor cloud.
-The condor cloud uses the deltacloud driver as the API to implement a private cloud system.
+The condor cloud uses the deltacloud driver as the API to implement a
+private cloud system.
+
+Requirements:
+- One x86_64 machine to run as the master condor server.  This server will
+  have the condor-cloud rpm on it.
+- Zero or more (the master can run VMs) x86_64 machines to use as nodes to run
+  cloud instances on.  These machines will each have the condor-cloud-node rpm
+  installed and be configured to talk to the master.
+
+
+Networking
+~~~~~~~~~~
+
+Since the cloud is a network based system, you will want to enable bridging
+on each system you want to run instances on.  This will allow your VMs to
+directly talk on the network and be reachable via ssh etc.  This step must be
+done on both the master and nodes.
+
+
+You will have to configure your ethernet device.  Create a file
+corresponding to your main network interface.  This would typically be
+'eth0' but depends on the configuration of the hardware etc.  For eth0
+we would create the file /etc/sysconfig/network-scripts/ifcfg-eth0.  
+It should look like:
+
+DEVICE=eth0
+# change the hardware address to match the hardware address your NIC uses
+HWADDR=00:16:76:D6:C9:45
+ONBOOT=yes
+BRIDGE=br0
+
+Now we want to create a bridge.  Create the file: 
+/etc/sysconfig/network-scripts/ifcfg-br0:
+
+DEVICE=br0
+TYPE=Bridge
+BOOTPROTO=dhcp
+ONBOOT=yes
+DELAY=0
+
+Note that if you use a bridge name other than br0 you will have to edit
+the configuration in deltacloud (more on that below).
+
+Disable NetworkManager and start regular network service:
+
+# chkconfig NetworkManager off
+# chkconfig network on
+# service NetworkManager stop
+# service network start
+
+Configure iptables to allow all traffic to be forwarded across the bridge.
+
+# iptables -I FORWARD -m physdev --physdev-is-bridged -j ACCEPT
+# service iptables save
+# service iptables restart
+
+Restart libvirt:
+
+# service libvirtd reload
+
+
+Condor Cloud Master Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+First step is to install condor-cloud rpm (which you probably
+already have).  This will install condor, libvirt, kvm and
+deltacloud core.  It also installs a sample configuration as
+/etc/condor/config.d/50condor_cloud.config and the supporting scripts
+for condor to operate as a cloud.
+
+Configure condor to start on boot and start it now:
+
+# chkconfig condor on
+# service condor start
+
+Configure deltacloud core to start on bootup with the condor backend driver in
+place:
+
+
 
 The first step is to get the right version of condor.  At this time
 this is the upstream 7.6 version, which is also available in the Aeolus

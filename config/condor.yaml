@@ -1,7 +1,7 @@
 ---
 
 # The network bridge used for VMs.
-:default_bridge: virbr0
+:default_bridge: br0
 :username: condor
 :password: deltacloud
 

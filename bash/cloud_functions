@@ -1,5 +1,5 @@
-STORAGE=/home/cloud/images
-CACHE=/home/cloud/cache
+STORAGE=/var/lib/condor-cloud/shared_images
+CACHE=/var/lib/condor-cloud/local_cache
 
 ERROR_MSG=
 
