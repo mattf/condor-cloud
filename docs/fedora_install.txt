@@ -11,7 +11,9 @@ Requirements:
 - Zero or more (the master can run VMs) x86_64 machines to use as nodes to run
   cloud instances on.  These machines will each have the condor-cloud-node rpm
   installed and be configured to talk to the master.
-
+- If you wish to use multiple nodes, some form of shared storage for the
+  filesystem in /var/lib/condor-cloud/shared_images will need to be
+  configured.  We show you how to configure NFS for this task below.
 
 Networking
 ~~~~~~~~~~
@@ -20,7 +22,6 @@ Since the cloud is a network based system, you will want to enable bridging
 on each system you want to run instances on.  This will allow your VMs to
 directly talk on the network and be reachable via ssh etc.  This step must be
 done on both the master and nodes.
-
 
 You will have to configure your ethernet device.  Create a file
 corresponding to your main network interface.  This would typically be
@@ -67,6 +68,11 @@ Restart libvirt:
 Condor Cloud Master Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+This steps you through setting up the master as configured by default, which
+will only allow you the single machine to start instances on.  To set up a
+distributed cloud with more than one node, follow these instructions and then
+continue on to the node configuration for a distributed cloud configuration.
+
 First step is to install condor-cloud rpm (which you probably
 already have).  This will install condor, libvirt, kvm and
 deltacloud core.  It also installs a sample configuration as
@@ -78,95 +84,91 @@ Configure condor to start on boot and start it now:
 # chkconfig condor on
 # service condor start
 
-Configure deltacloud core to start on bootup with the condor backend driver in
-place:
+Next we configure deltacloud core to start on bootup with the condor backend driver in
+place.  Edit /etc/rc.d/init.d/deltacloud-core and change:
+
+DRIVER="${DRIVER:-ec2}"
+
+to:
+
+DRIVER="${DRIVER:-condor}"
+
+Turn on the deltacloud core service and start it:
+
+# chkconfig deltacloud-core on
+# service deltacloud-core start
+
+Install a valid KVM image in /var/lib/condor-cloud/shared_images.
+Note that there is a directory for staging images since it can take a
+long time to copy them.  For this reason you can first copy them into
+/var/lib/condor-cloud/shared_images/staging and them 'mv' them into
+/var/lib/condor-cloud/shared_images.
+
+You should then be able to browse to http://localhost:3002/api and see the
+image(s) you have installed, start them, stop them etc.
 
 
+Adding Nodes
+~~~~~~~~~~~~
 
-The first step is to get the right version of condor.  At this time
-this is the upstream 7.6 version, which is also available in the Aeolus
-testing repo.  To install the repo use one of these:
+Once you have the master set up, you can add as many nodes to the system as
+you like.  
 
-http://repos.fedorapeople.org/repos/aeolus/packages-testing/fedora-aeolus-testing.repo
-http://repos.fedorapeople.org/repos/aeolus/packages-testing/rhel-aeolus-testing.repo
+Once you have a basic fedora machine up and running, install the
+condor-cloud-node rpm to provide the basics needed to run as a condor
+cloud node.
 
-and put it in /etc/yum.repos.d/
+Configure bridged networking on the node machine as described above.
 
-Then simply:
+You must now configure condor to connect to the master condor-cloud host.
+The easiest way to do this is to create a new file on the node as
+/etc/condor/config.d/40cloud_node.config:
 
-  sudo yum install condor-vm-gahp
+CONDOR_HOST = <master hostname>
+ALLOW_WRITE = $(ALLOW_WRITE), $(CONDOR_HOST)
 
-Copy the condor_config.local to /var/lib/condor/condor_config.local:
+where "<master hostname>" should be replaced with the host name of your
+master condor cloud system.  You will also likely have to configure the
+firewall on the master system to allow it to connect.  There are also various
+authentication schemes available for greater security.
 
-  sudo cp config/condor_config.local /var/lib/condor/condor_config.local
+More details can be found at:
 
-Copy the support scripts to /usr/libexec/condor:
+http://spinningmatt.wordpress.com/2011/06/12/getting-started-creating-a-multiple-node-condor-pool/
 
-  sudo cp bash/* /usr/libexec/condor/
+Shared Storage for Images
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Restart the condor service to pick up the new config:
+In addition to configuring the condor nodes, you must also have shared storage
+available for the images.  The easiest way to do this is to configure the
+master as an NFS sever and then have the nodes mount the export.  Of course
+you can configure this however you see fit.  Note also that the
+/var/lib/condor-cloud/local_cache should have a good amount of storage space
+available as it will copy the images from /var/lib/condor-cloud/shared_images
+to make starting/running the instances faster.
 
-  sudo service condor restart
+To configure NFS on the master condor-cloud system, edit /etc/exports and add:
 
-Condor is now started and is ready to be used by the deltacloud API.  One thing left 
-is to create the directory structure for images.  This is done with:
+/var/lib/condor-cloud/shared_images 172.31.0.0/24(ro)
 
-sudo mkdir /home/cloud/
-sudo mkdir /home/cloud/images
-sudo mkdir /home/cloud/images/staging
-sudo mkdir /home/cloud/cache
+Where the ip address range is dependant upon your network configuration.
 
-I personally chown'd those all to my user account so that I could access them freely.
-In the future this will be its own account (and you could certainly just adduser cloud
-if you felt like it), but for now this will work.
+Unfortunately running NFSv3 on the server basically requires that you turn off
+the firewall.  For this reason you may wish to contemplate a different
+arrangement.  However I will document how to do this here as a guide.  Turn
+off the firewall:
 
-You must also get a valid image or 3 into /home/cloud/images.  This should be a plain
-KVM formatted image.
+# service iptables stop
 
-Condor Cloud Deltacloud API driver
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Start the nfs server:
 
-Requirements:
+# chkconfig --levels 235 nfs on 
+# /etc/init.d/nfs start
 
-* Condor installed using steps from 'Condor Cloud' section above
-* Commands in shell path: condor_q, condor_submit and condor_rm
-* VM images in /home/cloud/images directory
+On each node that you configure, add the following to /etc/fstab:
 
-Installation:
+<condor cloud master>:/var/lib/condor-cloud/shared_images /var/lib/condor-cloud/shared_images nfs defaults 0 0
 
-1. git clone git://git.apache.org/deltacloud.git core
-2. Copy deltacloud-condor-driver/* into core/server/lib/deltacloud/drivers/condor
-3. Edit core/server/config/drivers.yaml and add following lines to enable Condor driver:
-
-:condor:
-  :name: Condor
-
-4. Copy config/addresses.xml into core/server/config/
-5. Start Deltacloud API using: ./bin/deltacloudd -i condor
-
-Alternative installation (RPM)
-
-1. wget http://mifo.sk/fedora/condor/deltacloud-condor-0.3.0-2.el6.noarch.rpm
-2. rpm -i deltacloud-condor-0.3.0-2.el6.noarch.rpm
-3. Edit /etc/sysconfig/deltacloud-condor and write an HOST or IP address and PORT here:
-
-/etc/sysconfig/deltacloud-condor:
-HOST=10.0.0.1
-PORT=3005
-
-4. Restart deltacloud-condor server using 'service deltacloud-condor restart'
-
-
-Testing && Developing:
-
-Test::Unit files are located in 'test' directory, but to execute them you need to do
-some modifications in executor.rb. First you need to change a path for base_model, because
-it's set to Deltacloud API default dir.
-Then you can execute test suite using: 'rake test'
-
-Using:
-
-You can now navigate to localhost:3001 (default) and if you have an image in
-/home/cloud/images you will be able to launch that image.
+Where of course '<condor cloud master>' is the hostname of the master server.
 
 

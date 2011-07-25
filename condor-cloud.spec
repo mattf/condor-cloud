@@ -1,7 +1,7 @@
 Name: condor-cloud
 Summary: Condor Cloud Master Setup
 Version: 0.1
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: apache
 Group: Applications/System
 URL: http://imain.fedorapeople.org/condor_cloud/
@@ -9,6 +9,7 @@ Source0: http://imain.fedorapeople.org/condor_cloud/%{name}-%{version}.tar.gz
 Requires: condor-vm-gahp >= 7.7.0
 Requires: libvirt >= 0.8.8
 Requires: deltacloud-core >= 0.3
+Requires: qemu-kvm >= 0.14
 
 BuildArch: noarch
 
@@ -19,6 +20,7 @@ Condor Cloud provides an IaaS cloud implementation using Condor and the Deltaclo
 Summary: Condor Cloud Node Setup
 Requires: condor-vm-gahp >= 7.7.0
 Requires: libvirt >= 0.8.8
+Requires: qemu-kvm >= 0.14
 
 %description node
 Condor Cloud provides an IaaS cloud implementation using Condor and the Deltacloud API.  This package provides a starting configuration for one of multiple nodes in the cloud.
@@ -52,16 +54,16 @@ Condor Cloud provides an IaaS cloud implementation using Condor and the Deltaclo
 %attr(0644,root,root) %{_datadir}/%{name}-doc/fedora_install.txt
 %attr(0644,root,root) %{_sysconfdir}/condor/config.d/50condor_cloud.config 
 %attr(0755,root,root) %{_libexecdir}/condor/*
-%dir %attr(0711, root, root) %{_localstatedir}/lib/condor-cloud/shared_images/
-%dir %attr(0711, root, root) %{_localstatedir}/lib/condor-cloud/shared_images/staging/
-%dir %attr(0711, root, root) %{_localstatedir}/lib/condor-cloud/local_cache/
+%dir %attr(0755, root, root) %{_localstatedir}/lib/condor-cloud/shared_images/
+%dir %attr(0755, root, root) %{_localstatedir}/lib/condor-cloud/shared_images/staging/
+%dir %attr(0711, condor, condor) %{_localstatedir}/lib/condor-cloud/local_cache/
 
 %files node
 %attr(0644,root,root) %{_datadir}/%{name}-doc/fedora_install.txt
 %attr(0644,root,root) %{_sysconfdir}/condor/config.d/50condor_cloud_node.config 
 %attr(0755,root,root) %{_libexecdir}/condor/*
-%dir %attr(0711, root, root) %{_localstatedir}/lib/condor-cloud/shared_images/
-%dir %attr(0711, root, root) %{_localstatedir}/lib/condor-cloud/local_cache/
+%dir %attr(0755, root, root) %{_localstatedir}/lib/condor-cloud/shared_images/
+%dir %attr(0711, condor, condor) %{_localstatedir}/lib/condor-cloud/local_cache/
 
 %changelog
 * Wed Jul 20 2011 Ian Main <imain@redhat.com> 0.1-1
