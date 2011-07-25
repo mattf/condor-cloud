@@ -2,7 +2,7 @@ Name: condor-cloud
 Summary: Condor Cloud Master Setup
 Version: 0.1
 Release: 2%{?dist}
-License: apache
+License: ASL 2.0
 Group: Applications/System
 URL: http://imain.fedorapeople.org/condor_cloud/
 Source0: http://imain.fedorapeople.org/condor_cloud/%{name}-%{version}.tar.gz
@@ -14,7 +14,9 @@ Requires: qemu-kvm >= 0.14
 BuildArch: noarch
 
 %description
-Condor Cloud provides an IaaS cloud implementation using Condor and the Deltacloud API.  This package provides a starting configuration for the master condor cloud host.
+Condor Cloud provides an IaaS cloud implementation using Condor and the
+Deltacloud API.  This package provides a starting configuration for the
+master condor cloud host.
 
 %package node
 Summary: Condor Cloud Node Setup
@@ -23,10 +25,12 @@ Requires: libvirt >= 0.8.8
 Requires: qemu-kvm >= 0.14
 
 %description node
-Condor Cloud provides an IaaS cloud implementation using Condor and the Deltacloud API.  This package provides a starting configuration for one of multiple nodes in the cloud.
+Condor Cloud provides an IaaS cloud implementation using Condor and the
+Deltacloud API.  This package provides a starting configuration for one
+of multiple nodes in the cloud.
 
 %prep
-%setup
+%setup -q
 
 %build
 
