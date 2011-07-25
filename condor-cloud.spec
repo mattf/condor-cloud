@@ -56,6 +56,8 @@ Condor Cloud provides an IaaS cloud implementation using Condor and the Deltaclo
 %attr(0755,root,root) %{_libexecdir}/condor/*
 %dir %attr(0755, root, root) %{_localstatedir}/lib/condor-cloud/shared_images/
 %dir %attr(0755, root, root) %{_localstatedir}/lib/condor-cloud/shared_images/staging/
+# Jobs on the local machine will be run as 'condor' as set in deltacloud API.
+# Local cache must be writable to job submitter.
 %dir %attr(0711, condor, condor) %{_localstatedir}/lib/condor-cloud/local_cache/
 
 %files node
@@ -63,9 +65,14 @@ Condor Cloud provides an IaaS cloud implementation using Condor and the Deltaclo
 %attr(0644,root,root) %{_sysconfdir}/condor/config.d/50condor_cloud_node.config 
 %attr(0755,root,root) %{_libexecdir}/condor/*
 %dir %attr(0755, root, root) %{_localstatedir}/lib/condor-cloud/shared_images/
-%dir %attr(0711, condor, condor) %{_localstatedir}/lib/condor-cloud/local_cache/
+
+# Jobs on remote machines are run as 'nobody'.
+%dir %attr(0711, nobody, nobody) %{_localstatedir}/lib/condor-cloud/local_cache/
 
 %changelog
+* Mon Jul 25 2011 Ian Main <imain@redhat.com> 0.1-2
+- Change permissions and ownership of cache/shared image dirs.
+
 * Wed Jul 20 2011 Ian Main <imain@redhat.com> 0.1-1
 - Initial packaging.
 
