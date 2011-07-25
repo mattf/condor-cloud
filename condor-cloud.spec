@@ -31,7 +31,7 @@ Condor Cloud provides an IaaS cloud implementation using Condor and the Deltaclo
 %build
 
 %install
-%{__mkdir} -p %{buildroot}%{_datadir}/%{name}-doc
+%{__mkdir} -p %{buildroot}%{_datadir}/doc/%{name}
 %{__mkdir} -p %{buildroot}%{_sysconfdir}/condor/config.d
 %{__mkdir} -p %{buildroot}%{_libexecdir}/condor
 %{__mkdir} -p %{buildroot}%{_localstatedir}/lib/condor-cloud/shared_images/
@@ -41,7 +41,7 @@ Condor Cloud provides an IaaS cloud implementation using Condor and the Deltaclo
 %{__cp} bash/* %{buildroot}%{_libexecdir}/condor/
 %{__cp} config/50condor_cloud.config %{buildroot}%{_sysconfdir}/condor/config.d/
 %{__cp} config/50condor_cloud_node.config %{buildroot}%{_sysconfdir}/condor/config.d/
-%{__cp} docs/fedora_install.txt %{buildroot}%{_datadir}/%{name}-doc/
+%{__cp} docs/fedora_install.txt %{buildroot}%{_datadir}/doc/%{name}/
 
 %clean
 %{__rm} -rf %{buildroot}
@@ -51,7 +51,7 @@ Condor Cloud provides an IaaS cloud implementation using Condor and the Deltaclo
 %postun
 
 %files
-%attr(0644,root,root) %{_datadir}/%{name}-doc/fedora_install.txt
+%attr(0644,root,root) %{_datadir}/doc/%{name}/fedora_install.txt
 %attr(0644,root,root) %{_sysconfdir}/condor/config.d/50condor_cloud.config 
 %attr(0755,root,root) %{_libexecdir}/condor/*
 %dir %attr(0755, root, root) %{_localstatedir}/lib/condor-cloud/shared_images/
@@ -61,7 +61,7 @@ Condor Cloud provides an IaaS cloud implementation using Condor and the Deltaclo
 %dir %attr(0711, condor, condor) %{_localstatedir}/lib/condor-cloud/local_cache/
 
 %files node
-%attr(0644,root,root) %{_datadir}/%{name}-doc/fedora_install.txt
+%attr(0644,root,root) %{_datadir}/doc/%{name}/fedora_install.txt
 %attr(0644,root,root) %{_sysconfdir}/condor/config.d/50condor_cloud_node.config 
 %attr(0755,root,root) %{_libexecdir}/condor/*
 %dir %attr(0755, root, root) %{_localstatedir}/lib/condor-cloud/shared_images/
