@@ -26,7 +26,7 @@ done on both the master and nodes.
 You will have to configure your ethernet device.  Create a file
 corresponding to your main network interface.  This would typically be
 'eth0' but depends on the configuration of the hardware etc.  For eth0
-we would create the file /etc/sysconfig/network-scripts/ifcfg-eth0.  
+we would create the file /etc/sysconfig/network-scripts/ifcfg-eth0.
 It should look like:
 
 DEVICE=eth0
@@ -35,7 +35,7 @@ HWADDR=00:16:76:D6:C9:45
 ONBOOT=yes
 BRIDGE=br0
 
-Now we want to create a bridge.  Create the file: 
+Now we want to create a bridge.  Create the file:
 /etc/sysconfig/network-scripts/ifcfg-br0:
 
 DEVICE=br0
@@ -112,7 +112,7 @@ Adding Nodes
 ~~~~~~~~~~~~
 
 Once you have the master set up, you can add as many nodes to the system as
-you like.  
+you like.
 
 Once you have a basic fedora machine up and running, install the
 condor-cloud-node rpm to provide the basics needed to run as a condor
@@ -162,7 +162,7 @@ off the firewall:
 
 Start the nfs server:
 
-# chkconfig --levels 235 nfs on 
+# chkconfig --levels 235 nfs on
 # /etc/init.d/nfs start
 
 On each node that you configure, add the following to /etc/fstab:
