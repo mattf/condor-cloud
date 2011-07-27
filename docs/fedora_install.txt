@@ -85,13 +85,13 @@ Configure condor to start on boot and start it now:
 # service condor start
 
 Next we configure deltacloud core to start on bootup with the condor backend driver in
-place.  Edit /etc/rc.d/init.d/deltacloud-core and change:
+place.  Edit /etc/sysconfig/deltacloud-core and change:
 
-DRIVER="${DRIVER:-ec2}"
+DRIVER="ec2"
 
 to:
 
-DRIVER="${DRIVER:-condor}"
+DRIVER="condor"
 
 Turn on the deltacloud core service and start it:
 

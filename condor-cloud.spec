@@ -1,7 +1,7 @@
 Name: condor-cloud
 Summary: Condor Cloud Master Setup
 Version: 0.1
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: ASL 2.0
 Group: Applications/System
 URL: http://imain.fedorapeople.org/condor_cloud/
@@ -63,9 +63,9 @@ of multiple nodes in the cloud.
 %dir %attr(0755, root, root) %{_localstatedir}/lib/condor-cloud/shared_images/
 %dir %attr(0755, root, root) %{_localstatedir}/lib/condor-cloud/shared_images/staging/
 %doc COPYING
-# Jobs on the local machine will be run as 'condor' as set in deltacloud API.
+# Jobs on the local machine will be run as 'nobody' as this is what the deltacloud API uses.
 # Local cache must be writable to job submitter.
-%dir %attr(0755, condor, condor) %{_localstatedir}/lib/condor-cloud/local_cache/
+%dir %attr(0755, nobody, nobody) %{_localstatedir}/lib/condor-cloud/local_cache/
 
 %files node
 %doc docs/fedora_install.txt
@@ -78,6 +78,9 @@ of multiple nodes in the cloud.
 %dir %attr(0755, nobody, nobody) %{_localstatedir}/lib/condor-cloud/local_cache/
 
 %changelog
+* Tue Jul 27 2011 Ian Main <imain@redhat.com> 0.1-4
+- Use 'nobody' for local jobs too.
+
 * Tue Jul 26 2011 Ian Main <imain@redhat.com> 0.1-3
 - Some tweaks as per review.
 

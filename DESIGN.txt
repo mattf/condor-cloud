@@ -122,3 +122,10 @@ service network restart
 
 service libvirtd reload
 
+
+TODO:
+
+- Fix bug where stopping instance during image copy causes it to hang.
+- Fix bug where incorrect perms in cache dir causes lockfile to not be made
+  right.
+
